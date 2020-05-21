@@ -77,7 +77,7 @@ server.route("GET", "/*/foo", () => {
 });
 ```
 
-And you can use regex witin your routes
+And you can use regex within your routes
 
 ```javascript
 server.route("GET", "/hello/?", () => {
