@@ -1,0 +1,33 @@
+{
+  "project": {
+    "id": "",
+    "name": "typescript-project-starter",
+    "path": "flagpole",
+    "source": "src",
+    "output": "out",
+    "images": "images",
+    "cache": "cache",
+    "schemas": "schemas"
+  },
+  "environments": {
+    "dev": {
+      "name": "dev",
+      "defaultDomain": "https://www.your-site.local"
+    },
+    "stag": {
+      "name": "stag",
+      "defaultDomain": "https://www.stag.your-site.local"
+    },
+    "prod": {
+      "name": "prod",
+      "defaultDomain": "https://www.your-site.com"
+    }
+  },
+  "suites": {
+    "smoke": {
+      "id": "",
+      "name": "smoke",
+      "tags": []
+    }
+  }
+}
