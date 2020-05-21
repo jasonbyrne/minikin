@@ -9,7 +9,7 @@ So here you go.
 Install it with:
 
 ```
-npm i minkikin
+npm i minikin
 ```
 
 Then start using it:
