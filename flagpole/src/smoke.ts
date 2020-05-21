@@ -16,6 +16,15 @@ import { MinikinServer, MinikinResponse } from "../../dist/index.js";
     });
   });
 
+  server.route("GET", "*", () => {
+    return MinikinResponse.createFromJson(
+      {
+        message: "File not found",
+      },
+      { statusCode: 404 }
+    );
+  });
+
   const suite = flagpole("Basic Smoke Test of Site").base(
     "http://localhost:8000"
   );
@@ -45,5 +54,6 @@ import { MinikinServer, MinikinResponse } from "../../dist/index.js";
     .open("/foo")
     .next(async (context) => {
       context.assert(context.response.statusCode).equals(404);
+      context.assert(await context.find("message")).equals("File not found");
     });
 })();

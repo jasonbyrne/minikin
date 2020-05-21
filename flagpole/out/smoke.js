@@ -23,6 +23,11 @@ const index_js_1 = require("../../dist/index.js");
             message: `Hello to ${req.params.name} from Minikin!`,
         });
     });
+    server.route("GET", "*", () => {
+        return index_js_1.MinikinResponse.createFromJson({
+            message: "File not found",
+        }, { statusCode: 404 });
+    });
     const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();
@@ -46,5 +51,6 @@ const index_js_1 = require("../../dist/index.js");
         .open("/foo")
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.statusCode).equals(404);
+        context.assert(yield context.find("message")).equals("File not found");
     }));
 }))();

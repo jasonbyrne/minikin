@@ -1,12 +1,12 @@
 {
   "name": "minikin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Light weight Node server in TypeScript with no dependencies and no extras",
   "main": "dist/index.js",
   "scripts": {
     "start": "node ./dist/index",
     "build": "tsc",
-    "test": "flagpole run --all",
+    "test": "flagpole run --all --build",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
   },
   "repository": {

@@ -1,28 +1,35 @@
 import * as http from "http";
+import * as https from "https";
 import { MinikinRouteCallback } from "./handler";
 import { HttpMethod, MinikinRequest } from "./request";
 import { MinikinResponse } from "./response";
 
 export class MinikinServer {
   private _httpPort: number = 3000;
-  private _server: http.Server;
+  private _server: http.Server | https.Server;
   private _handlers: [HttpMethod, string, MinikinRouteCallback][];
 
   public get isListening(): boolean {
     return this._server.listening;
   }
 
-  public static async create(port: number): Promise<MinikinServer> {
-    const server = new MinikinServer(port);
+  public static async create(
+    port: number,
+    opts?: https.ServerOptions
+  ): Promise<MinikinServer> {
+    const server = new MinikinServer(port, opts);
     await server._listen();
     return server;
   }
 
-  private constructor(port: number) {
-    this._httpPort = port;
-    this._server = http.createServer((req, res) => {
+  private constructor(port: number, secureOpts?: https.ServerOptions) {
+    const listener = (req: http.IncomingMessage, res: http.ServerResponse) => {
       this._requestHandler(req, res);
-    });
+    };
+    this._httpPort = port;
+    this._server = secureOpts
+      ? https.createServer(secureOpts, listener)
+      : http.createServer(listener);
     this._handlers = [];
   }
 
@@ -36,15 +43,13 @@ export class MinikinServer {
           chunks.push(chunk);
         })
         .on("end", () => {
-          const body = Buffer.concat(chunks).toString();
-          const myReq: MinikinRequest = {
-            body: body,
+          resolve({
+            body: Buffer.concat(chunks).toString(),
             url: req.url || "/",
             headers: req.headers,
             method: (req.method?.toUpperCase() || "GET") as HttpMethod,
             params: {},
-          };
-          resolve(myReq);
+          });
         });
     });
   }
@@ -57,9 +62,16 @@ export class MinikinServer {
     for (let i = 0; i < this._handlers.length; i++) {
       const handler = this._handlers[i];
       // See if the path and method match one of them
-      const regexPath = new RegExp(
-        "^" + handler[1].replace(/\/:[A-Za-z]+/g, "/([^/]+)") + "$"
-      );
+      const regexPath =
+        handler[1] === "*"
+          ? new RegExp(".*")
+          : new RegExp(
+              "^" +
+                handler[1]
+                  .replace(/\/:[A-Za-z]+/g, "/([^/]+)")
+                  .replace(/\/\*/, "/.*") +
+                "$"
+            );
       const pathMatches = myReq.url?.match(regexPath);
       if (myReq.method == handler[0] && pathMatches) {
         // Parse params from route
@@ -71,19 +83,32 @@ export class MinikinServer {
             myReq.params[key] = pathMatches[i + 1];
           });
         }
-        // Get response from handler
-        const myResponse = await handler[2](myReq);
-        // Send a response
-        this._sendResponse(
-          res,
-          myResponse ||
+        try {
+          // Get response from handler
+          const myResponse = await handler[2](myReq);
+          // Send a response
+          this._sendResponse(
+            res,
+            myResponse ||
+              MinikinResponse.createFromJson(
+                {
+                  message: "No content in response",
+                },
+                { statusCode: 500 }
+              )
+          );
+        } catch (ex) {
+          this._sendResponse(
+            res,
             MinikinResponse.createFromJson(
               {
-                message: "No content in response",
+                message: `Unhandled exception`,
+                details: ex,
               },
               { statusCode: 500 }
             )
-        );
+          );
+        }
         return true;
       }
     }
