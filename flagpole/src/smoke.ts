@@ -2,11 +2,11 @@ import flagpole from "flagpole";
 import { Server, Response } from "../../dist/index.js";
 
 (async () => {
-  const server = await Server.create(8000);
+  const server = await Server.listen(8000);
 
   server
     .route("GET", "/hello", () =>
-      Response.createFromJson(
+      Response.fromJson(
         {
           message: "Hello from Minikin!",
         },
@@ -16,7 +16,7 @@ import { Server, Response } from "../../dist/index.js";
       )
     )
     .route("GET", "/hello/:name", (req) =>
-      Response.createFromJson({
+      Response.fromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
       })
     )
@@ -26,13 +26,13 @@ import { Server, Response } from "../../dist/index.js";
       () => {},
       (req) => {
         if (!req.headers["Authorization"]) {
-          return Response.createFromString("foo", { statusCode: 401 });
+          return Response.fromString("foo", { statusCode: 401 });
         }
       },
-      () => Response.createFromString("bar")
+      () => Response.fromString("bar")
     )
     .route("GET", "*", () =>
-      Response.createFromJson(
+      Response.fromJson(
         {
           message: "File not found",
         },

@@ -22,10 +22,10 @@ Then start using it:
 import { Server, Response } from "minikin";
 
 (async () => {
-  const server = await Server.create(8000);
+  const server = await Server.listen(8000);
 
   server.route("GET", "/hello", () =>
-    Response.createFromJson({
+    Response.fromJson({
       message: "Hello from Minikin!",
     })
   );
@@ -36,7 +36,7 @@ Minikin can also handle URL path params out of the box:
 
 ```javascript
 server.route("GET", "/hello/:name", (req) =>
-  Response.createFromJson({
+  Response.fromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
   })
 );
@@ -47,7 +47,7 @@ It will parse the JSON body automatically:
 ```javascript
 server.route("POST", "/person", (req) => {
   const name = req.body.name; // { name: "Jason" }
-  return Response.createFromJson({
+  return Response.fromJson({
     message: `You want to create a new person named ${name}`,
   });
 });
@@ -56,7 +56,7 @@ server.route("POST", "/person", (req) => {
 If you want to do HTTPS, pass in your certificate information as the segment argument
 
 ```javascript
-const server = await Server.create(8000, {
+const server = await Server.listen(8000, {
   pfx: fs.readFileSync("test/fixtures/test_cert.pfx"),
   passphrase: "sample",
 });
@@ -66,7 +66,7 @@ For a catch-all route, put it LAST. And do this:
 
 ```javascript
 server.route("GET", "*", () =>
-  Response.createFromJson(
+  Response.fromJson(
     {
       message: "File not found",
     },
@@ -79,7 +79,7 @@ You can also wildcard parts of the route like:
 
 ```javascript
 server.route("GET", "/*/foo", () =>
-  Response.createFromJson({
+  Response.fromJson({
     message: "This will respond to /hello/foo or /goodbye/foo",
   })
 );
@@ -89,7 +89,7 @@ And you can use regex within your routes
 
 ```javascript
 server.route("GET", "/hello/?", () =>
-  Response.createFromJson({
+  Response.fromJson({
     message: "This will respond to /hello or /hello/",
   })
 );
@@ -98,28 +98,26 @@ server.route("GET", "/hello/?", () =>
 To serve a response from a local file:
 
 ```javascript
-server.route("GET", "/hello", () => Response.createFromFile("/path/to/file"));
+server.route("GET", "/hello", () => Response.fromFile("/path/to/file"));
 ```
 
 If it's a local binary file, like an image:
 
 ```javascript
-server.route("GET", "/hello", () =>
-  Response.createFromBinary("/path/to/image")
-);
+server.route("GET", "/hello", () => Response.fromBinary("/path/to/image"));
 ```
 
 Or to respond with a string:
 
 ```javascript
-server.route("GET", "/hello", () => Response.createFromString("Hello World!"));
+server.route("GET", "/hello", () => Response.fromString("Hello World!"));
 ```
 
 To set status code:
 
 ```javascript
 server.route("GET", "/hello", () =>
-  Response.createFromString("Forbidden", {
+  Response.fromString("Forbidden", {
     statusCode: 403,
   })
 );
@@ -129,7 +127,7 @@ And to set any headers:
 
 ```javascript
 server.route("GET", "/hello", () =>
-  Response.createFromString("Forbidden", {
+  Response.fromString("Forbidden", {
     statusCode: 403,
     headers: [
       ["X-Custom-Header", "foobar"],
@@ -144,12 +142,12 @@ Minkin also supports middleware, most often used as guards. You can chain callba
 ```javascript
 const requireAuthentication = (req: Request) => {
   if (!req.headers["Authorization"]) {
-    return Response.createFromString("Must Authenticate", { statusCode: 401 });
+    return Response.fromString("Must Authenticate", { statusCode: 401 });
   }
 };
 
 server.route("GET", "/protected", requireAuthentication, () =>
-  Response.createFromString("OK")
+  Response.fromString("OK")
 );
 ```
 
@@ -157,11 +155,11 @@ You can also chain routes if you prefer that syntax:
 
 ```javascript
 server
-  .route("GET", "/hello", () => Response.createFromString("hello"))
-  .route("GET", "/hello/:name", (req) => Response.createFromJson({
+  .route("GET", "/hello", () => Response.fromString("hello"))
+  .route("GET", "/hello/:name", (req) => Response.fromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
   })
-  .route("GET", "/admin", () => Response.createFromString("Forbidden", {
+  .route("GET", "/admin", () => Response.fromString("Forbidden", {
     statusCode: 403
   });
 ```

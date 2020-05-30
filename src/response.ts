@@ -46,11 +46,11 @@ export class Response {
   private _statusMessage: string;
   private _headers: Headers = [["Content-Type", "text/html"]];
 
-  static createFromBinary(filePath: string, opts?: OptionalParams) {
-    return Response.createFromFile(filePath, opts, "binary");
+  static fromBinary(filePath: string, opts?: OptionalParams) {
+    return Response.fromFile(filePath, opts, "binary");
   }
 
-  static createFromFile(
+  static fromFile(
     filePath: string,
     opts?: OptionalParams,
     encoding:
@@ -75,13 +75,13 @@ export class Response {
         ...opts,
       });
     } else {
-      return Response.createFromString(`${fullPath} was not found`, {
+      return Response.fromString(`${fullPath} was not found`, {
         statusCode: 404,
       });
     }
   }
 
-  static createFromString(content: string, opts?: OptionalParams) {
+  static fromString(content: string, opts?: OptionalParams) {
     return new Response(content, {
       ...{
         headers: [["Content-Type", "text/plain"]],
@@ -90,7 +90,7 @@ export class Response {
     });
   }
 
-  static createFromJson(json: any, opts?: OptionalParams) {
+  static fromJson(json: any, opts?: OptionalParams) {
     return new Response(JSON.stringify(json), {
       ...{
         headers: [["Content-Type", "application/json"]],

@@ -17,7 +17,7 @@ const asyncFirstResponse = (
     }
     resolve(
       res === null
-        ? Response.createFromString("No response", { statusCode: 500 })
+        ? Response.fromString("No response", { statusCode: 500 })
         : res
     );
   });
@@ -32,7 +32,7 @@ export class Server {
     return this._server.listening;
   }
 
-  public static async create(
+  public static async listen(
     port: number,
     opts?: https.ServerOptions
   ): Promise<Server> {
@@ -107,7 +107,7 @@ export class Server {
           this._sendResponse(
             res,
             myResponse ||
-              Response.createFromJson(
+              Response.fromJson(
                 {
                   message: "No content in response",
                 },
@@ -117,7 +117,7 @@ export class Server {
         } catch (ex) {
           this._sendResponse(
             res,
-            Response.createFromJson(
+            Response.fromJson(
               {
                 message: `Unhandled exception`,
                 details: ex,
@@ -140,7 +140,7 @@ export class Server {
     await this._handle(myReq, res);
     this._sendResponse(
       res,
-      Response.createFromJson({ message: "Not Found" }, { statusCode: 404 })
+      Response.fromJson({ message: "Not Found" }, { statusCode: 404 })
     );
   }
 
