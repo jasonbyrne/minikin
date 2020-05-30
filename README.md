@@ -1,10 +1,12 @@
 # Minikin
 
-![Size](https://badgen.net/bundlephobia/minzip/minikin)
+![Version](https://badgen.net/npm/v/minikin)
+![Minified](https://badgen.net/bundlephobia/min/minikin)
+![Minzipped](https://badgen.net/bundlephobia/minzip/minikin)
 
-Yeah. Another web server framework. Why?
+SMALL BUT MIGHTY!
 
-The other ones are really big. They have dependencies and do too much. I just wanted a simple way to start up an HTTP server and handle some routes. No fluff.
+Yet another web server? Why?! Well, the other ones are really big. They have dependencies and do too much. I just wanted a simple way to start up an HTTP server, handle some routes, and handle the core use cases that you need most of the time. 80-20 rule. No other fluff.
 
 So here you go.
 
