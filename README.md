@@ -29,13 +29,17 @@ import { Server, Response } from "minikin";
       message: "Hello from Minikin!",
     });
   });
-
-  server.route("GET", "/hello/:name", (req) => {
-    return Response.createFromJson({
-      message: `Hello to ${req.params.name} from Minikin!`,
-    });
-  });
 })();
+```
+
+Minikin can also handle URL path params out of the box:
+
+```javascript
+server.route("GET", "/hello/:name", (req) => {
+  return Response.createFromJson({
+    message: `Hello to ${req.params.name} from Minikin!`,
+  });
+});
 ```
 
 It will parse the JSON body automatically:
