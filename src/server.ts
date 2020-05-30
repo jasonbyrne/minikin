@@ -60,13 +60,15 @@ export class Server {
           chunks.push(chunk);
         })
         .on("end", () => {
-          resolve({
-            body: Buffer.concat(chunks).toString(),
-            url: req.url || "/",
-            headers: req.headers,
-            method: (req.method?.toUpperCase() || "GET") as HttpMethod,
-            params: {},
-          });
+          resolve(
+            new Request({
+              body: Buffer.concat(chunks).toString(),
+              url: req.url || "/",
+              headers: req.headers,
+              method: (req.method?.toUpperCase() || "GET") as HttpMethod,
+              params: {},
+            })
+          );
         });
     });
   }

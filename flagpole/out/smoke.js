@@ -22,6 +22,7 @@ const index_js_1 = require("../../dist/index.js");
         .route("GET", "/hello/:name", (req) => index_js_1.Response.fromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
     }))
+        .route("GET", "/cookie", (req) => index_js_1.Response.fromString(req.cookies.test))
         .route("GET", "/protected", () => { }, (req) => {
         if (!req.headers["Authorization"]) {
             return index_js_1.Response.fromString("foo", { statusCode: 401 });
@@ -62,5 +63,12 @@ const index_js_1 = require("../../dist/index.js");
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.statusCode).equals(401);
         context.assert(context.response.body).equals("foo");
+    }));
+    suite
+        .scenario("Cookie test", "resource")
+        .open("/cookie")
+        .setHeader("cookie", "test=foobar")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.body).equals("foobar");
     }));
 }))();

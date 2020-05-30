@@ -95,6 +95,22 @@ server.route("GET", "/hello/?", () =>
 );
 ```
 
+To read cookies:
+
+```javascript
+server.route("GET", "/hello", (req) =>
+  Response.fromString(req.cookies.myCookie ? "cookie set" : "cookie not set")
+);
+```
+
+To read headers:
+
+```javascript
+server.route("GET", "/hello", (req) =>
+  Response.fromString(req.headers.someHeader ? "header set" : "header not set")
+);
+```
+
 To serve a response from a local file:
 
 ```javascript

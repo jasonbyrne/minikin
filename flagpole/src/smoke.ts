@@ -20,6 +20,7 @@ import { Server, Response } from "../../dist/index.js";
         message: `Hello to ${req.params.name} from Minikin!`,
       })
     )
+    .route("GET", "/cookie", (req) => Response.fromString(req.cookies.test))
     .route(
       "GET",
       "/protected",
@@ -79,5 +80,13 @@ import { Server, Response } from "../../dist/index.js";
     .next(async (context) => {
       context.assert(context.response.statusCode).equals(401);
       context.assert(context.response.body).equals("foo");
+    });
+
+  suite
+    .scenario("Cookie test", "resource")
+    .open("/cookie")
+    .setHeader("cookie", "test=foobar")
+    .next(async (context) => {
+      context.assert(context.response.body).equals("foobar");
     });
 })();
