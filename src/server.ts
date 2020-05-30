@@ -134,9 +134,7 @@ export class MinikinServer {
     httpResponse: http.ServerResponse,
     myResponse: MinikinResponse
   ) {
-    httpResponse.writeHead(myResponse.statusCode, {
-      "Content-Type": myResponse.mimeType,
-    });
+    httpResponse.writeHead(myResponse.statusCode, myResponse.headers);
     httpResponse.end(myResponse.content);
   }
 

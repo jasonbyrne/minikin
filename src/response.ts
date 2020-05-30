@@ -1,21 +1,24 @@
 import fs = require("fs");
 import path = require("path");
+import { OutgoingHttpHeaders } from "http";
 
 export interface optionalParams {
   statusCode?: number;
-  mimeType?: string;
+  headers?: MinikinHeaders;
 }
+
+export type MinikinHeader = [string, string];
+export type MinikinHeaders = [string, string][];
 
 export class MinikinResponse {
   private _content: string = "";
   private _statusCode: number = 200;
-  private _mimeType: string = "text/html";
+  private _headers: MinikinHeaders = [["Content-Type", "text/html"]];
 
   static createFromFile(filePath: string, opts?: optionalParams) {
     const fullPath = path.join(process.cwd(), filePath);
     if (fs.existsSync(fullPath)) {
-      return new MinikinResponse({
-        ...{ content: fs.readFileSync(fullPath, "utf8") },
+      return new MinikinResponse(fs.readFileSync(fullPath, "utf8"), {
         ...opts,
       });
     } else {
@@ -26,21 +29,11 @@ export class MinikinResponse {
   }
 
   static createFromString(content: string, opts?: optionalParams) {
-    return new MinikinResponse({
-      ...{ content: content },
-      ...opts,
-    });
+    return new MinikinResponse(content, { ...opts });
   }
 
   static createFromJson(json: any, opts?: optionalParams) {
-    return new MinikinResponse({
-      ...{ content: JSON.stringify(json) },
-      ...opts,
-    });
-  }
-
-  public get mimeType(): string {
-    return this._mimeType;
+    return new MinikinResponse(JSON.stringify(json), { ...opts });
   }
 
   public get statusCode(): number {
@@ -51,14 +44,22 @@ export class MinikinResponse {
     return this._content;
   }
 
-  public constructor(opts: {
-    content: string;
-    statusCode?: number;
-    mimeType?: string;
-  }) {
+  public get headers(): OutgoingHttpHeaders {
+    const headers = {
+      "Content-Length": this._content.length,
+    };
+    this._headers.forEach((header) => {
+      headers[header[0]] = header[1];
+    });
+    return headers;
+  }
+
+  public constructor(content: string, opts: optionalParams) {
+    this._content = content;
     this._statusCode = opts.statusCode || this._statusCode;
-    this._mimeType = opts.mimeType || this._mimeType;
-    this._content = opts.content;
+    opts.headers?.forEach((header) => {
+      this.setHeader(header[0], header[1]);
+    });
   }
 
   public replace(key: string, value: string): MinikinResponse {
@@ -71,5 +72,32 @@ export class MinikinResponse {
       this.replace(key, replace[key]);
     }
     return this;
+  }
+
+  public setHeader(key: string, value: string) {
+    const i = this.indexOfHeader(key);
+    if (i >= 0) {
+      this._headers[i][1] = value;
+    } else {
+      this._headers.push([key, value]);
+    }
+  }
+
+  public getHeader(key: string): string | null {
+    const i = this.indexOfHeader(key);
+    return i >= 0 ? this._headers[i][1] : null;
+  }
+
+  public indexOfHeader(key: string): number {
+    let index: number = -1;
+    key = key.toLowerCase();
+    this._headers.some((header, i) => {
+      if (header[0].toLowerCase() == key) {
+        index = i;
+        return true;
+      }
+      return false;
+    });
+    return index;
   }
 }
