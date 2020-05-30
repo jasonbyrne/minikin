@@ -24,8 +24,10 @@ import { Server, Response } from "../../dist/index.js";
       "GET",
       "/protected",
       () => {},
-      () => {
-        return Response.createFromString("foo", { statusCode: 403 });
+      (req) => {
+        if (!req.headers["Authorization"]) {
+          return Response.createFromString("foo", { statusCode: 401 });
+        }
       },
       () => {
         return Response.createFromString("bar");
@@ -77,7 +79,7 @@ import { Server, Response } from "../../dist/index.js";
     .scenario("Should get a 403", "resource")
     .open("/protected")
     .next(async (context) => {
-      context.assert(context.response.statusCode).equals(403);
+      context.assert(context.response.statusCode).equals(401);
       context.assert(context.response.body).equals("foo");
     });
 })();

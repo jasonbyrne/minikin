@@ -15,19 +15,19 @@ npm i minikin
 Then start using it:
 
 ```javascript
-import { MinikinServer, MinikinResponse } from "minikin";
+import { Server, Response } from "minikin";
 
 (async () => {
-  const server = await MinikinServer.create(8000);
+  const server = await Server.create(8000);
 
   server.route("GET", "/hello", () => {
-    return MinikinResponse.createFromJson({
+    return Response.createFromJson({
       message: "Hello from Minikin!",
     });
   });
 
   server.route("GET", "/hello/:name", (req) => {
-    return MinikinResponse.createFromJson({
+    return Response.createFromJson({
       message: `Hello to ${req.params.name} from Minikin!`,
     });
   });
@@ -39,7 +39,7 @@ It will parse the JSON body automatically:
 ```javascript
 server.route("POST", "/person", (req) => {
   const name = req.body.name; // { name: "Jason" }
-  return MinikinResponse.createFromJson({
+  return Response.createFromJson({
     message: `You want to create a new person named ${name}`,
   });
 });
@@ -48,7 +48,7 @@ server.route("POST", "/person", (req) => {
 If you want to do HTTPS, pass in your certificate information as the segment argument
 
 ```javascript
-const server = await MinikinServer.create(8000, {
+const server = await Server.create(8000, {
   pfx: fs.readFileSync("test/fixtures/test_cert.pfx"),
   passphrase: "sample",
 });
@@ -58,7 +58,7 @@ For a catch-all route, put it LAST. And do this:
 
 ```javascript
 server.route("GET", "*", () => {
-  return MinikinResponse.createFromJson(
+  return Response.createFromJson(
     {
       message: "File not found",
     },
@@ -71,7 +71,7 @@ You can also wildcard parts of the route like:
 
 ```javascript
 server.route("GET", "/*/foo", () => {
-  return MinikinResponse.createFromJson({
+  return Response.createFromJson({
     message: "This will respond to /hello/foo or /goodbye/foo",
   });
 });
@@ -81,7 +81,7 @@ And you can use regex within your routes
 
 ```javascript
 server.route("GET", "/hello/?", () => {
-  return MinikinResponse.createFromJson({
+  return Response.createFromJson({
     message: "This will respond to /hello or /hello/",
   });
 });
@@ -91,7 +91,7 @@ To serve a response from a local file:
 
 ```javascript
 server.route("GET", "/hello", () => {
-  return MinikinResponse.createFromFile("/path/to/file");
+  return Response.createFromFile("/path/to/file");
 });
 ```
 
@@ -99,7 +99,7 @@ Or to respond with a string:
 
 ```javascript
 server.route("GET", "/hello", () => {
-  return MinikinResponse.createFromString("Hello World!");
+  return Response.createFromString("Hello World!");
 });
 ```
 
@@ -107,7 +107,7 @@ To set status code:
 
 ```javascript
 server.route("GET", "/hello", () => {
-  return MinikinResponse.createFromString("Forbidden", {
+  return Response.createFromString("Forbidden", {
     statusCode: 403,
   });
 });
@@ -115,16 +115,28 @@ server.route("GET", "/hello", () => {
 
 And to set any headers:
 
-To set status code:
-
 ```javascript
 server.route("GET", "/hello", () => {
-  return MinikinResponse.createFromString("Forbidden", {
+  return Response.createFromString("Forbidden", {
     statusCode: 403,
     headers: [
       ["X-Custom-Header", "foobar"],
       ["Cache-Control", "no-store"],
     ],
   });
+});
+```
+
+Minkin also supports middleware, most often used as guards. You can chain callbacks.
+
+```javascript
+const requireAuthentication = (req: Request) => {
+  if (!req.headers["Authorization"]) {
+    return Response.createFromString("Must Authenticate", { statusCode: 401 });
+  }
+};
+
+server.route("GET", "/protected", requireAuthentication, () => {
+  return Response.createFromString("OK");
 });
 ```

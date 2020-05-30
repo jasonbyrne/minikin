@@ -26,8 +26,10 @@ const index_js_1 = require("../../dist/index.js");
             message: `Hello to ${req.params.name} from Minikin!`,
         });
     })
-        .route("GET", "/protected", () => { }, () => {
-        return index_js_1.Response.createFromString("foo", { statusCode: 403 });
+        .route("GET", "/protected", () => { }, (req) => {
+        if (!req.headers["Authorization"]) {
+            return index_js_1.Response.createFromString("foo", { statusCode: 401 });
+        }
     }, () => {
         return index_js_1.Response.createFromString("bar");
     })
@@ -66,7 +68,7 @@ const index_js_1 = require("../../dist/index.js");
         .scenario("Should get a 403", "resource")
         .open("/protected")
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
-        context.assert(context.response.statusCode).equals(403);
+        context.assert(context.response.statusCode).equals(401);
         context.assert(context.response.body).equals("foo");
     }));
 }))();
