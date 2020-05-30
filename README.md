@@ -1,6 +1,6 @@
 # Minikin
 
-![Size](https://badgen.net/badge/bundlephobia/minzip/minikin)
+![Size](https://badgen.net/bundlephobia/minzip/minikin)
 
 Yeah. Another web server framework. Why?
 
