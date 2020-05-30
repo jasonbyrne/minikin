@@ -86,3 +86,45 @@ server.route("GET", "/hello/?", () => {
   });
 });
 ```
+
+To serve a response from a local file:
+
+```javascript
+server.route("GET", "/hello", () => {
+  return MinikinResponse.createFromFile("/path/to/file");
+});
+```
+
+Or to respond with a string:
+
+```javascript
+server.route("GET", "/hello", () => {
+  return MinikinResponse.createFromString("Hello World!");
+});
+```
+
+To set status code:
+
+```javascript
+server.route("GET", "/hello", () => {
+  return MinikinResponse.createFromString("Forbidden", {
+    statusCode: 403,
+  });
+});
+```
+
+And to set any headers:
+
+To set status code:
+
+```javascript
+server.route("GET", "/hello", () => {
+  return MinikinResponse.createFromString("Forbidden", {
+    statusCode: 403,
+    headers: [
+      ["X-Custom-Header", "foobar"],
+      ["Cache-Control", "no-store"],
+    ],
+  });
+});
+```
