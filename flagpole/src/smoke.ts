@@ -5,21 +5,21 @@ import { Server, Response } from "../../dist/index.js";
   const server = await Server.create(8000);
 
   server
-    .route("GET", "/hello", () => {
-      return Response.createFromJson(
+    .route("GET", "/hello", () =>
+      Response.createFromJson(
         {
           message: "Hello from Minikin!",
         },
         {
           headers: [["X-Test", "Hello"]],
         }
-      );
-    })
-    .route("GET", "/hello/:name", (req) => {
-      return Response.createFromJson({
+      )
+    )
+    .route("GET", "/hello/:name", (req) =>
+      Response.createFromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
-      });
-    })
+      })
+    )
     .route(
       "GET",
       "/protected",
@@ -29,18 +29,16 @@ import { Server, Response } from "../../dist/index.js";
           return Response.createFromString("foo", { statusCode: 401 });
         }
       },
-      () => {
-        return Response.createFromString("bar");
-      }
+      () => Response.createFromString("bar")
     )
-    .route("GET", "*", () => {
-      return Response.createFromJson(
+    .route("GET", "*", () =>
+      Response.createFromJson(
         {
           message: "File not found",
         },
         { statusCode: 404 }
-      );
-    });
+      )
+    );
 
   const suite = flagpole("Basic Smoke Test of Site").base(
     "http://localhost:8000"

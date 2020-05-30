@@ -14,30 +14,22 @@ const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.create(8000);
     server
-        .route("GET", "/hello", () => {
-        return index_js_1.Response.createFromJson({
-            message: "Hello from Minikin!",
-        }, {
-            headers: [["X-Test", "Hello"]],
-        });
-    })
-        .route("GET", "/hello/:name", (req) => {
-        return index_js_1.Response.createFromJson({
-            message: `Hello to ${req.params.name} from Minikin!`,
-        });
-    })
+        .route("GET", "/hello", () => index_js_1.Response.createFromJson({
+        message: "Hello from Minikin!",
+    }, {
+        headers: [["X-Test", "Hello"]],
+    }))
+        .route("GET", "/hello/:name", (req) => index_js_1.Response.createFromJson({
+        message: `Hello to ${req.params.name} from Minikin!`,
+    }))
         .route("GET", "/protected", () => { }, (req) => {
         if (!req.headers["Authorization"]) {
             return index_js_1.Response.createFromString("foo", { statusCode: 401 });
         }
-    }, () => {
-        return index_js_1.Response.createFromString("bar");
-    })
-        .route("GET", "*", () => {
-        return index_js_1.Response.createFromJson({
-            message: "File not found",
-        }, { statusCode: 404 });
-    });
+    }, () => index_js_1.Response.createFromString("bar"))
+        .route("GET", "*", () => index_js_1.Response.createFromJson({
+        message: "File not found",
+    }, { statusCode: 404 }));
     const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();

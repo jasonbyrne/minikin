@@ -24,22 +24,22 @@ import { Server, Response } from "minikin";
 (async () => {
   const server = await Server.create(8000);
 
-  server.route("GET", "/hello", () => {
-    return Response.createFromJson({
+  server.route("GET", "/hello", () =>
+    Response.createFromJson({
       message: "Hello from Minikin!",
-    });
-  });
+    })
+  );
 })();
 ```
 
 Minikin can also handle URL path params out of the box:
 
 ```javascript
-server.route("GET", "/hello/:name", (req) => {
-  return Response.createFromJson({
+server.route("GET", "/hello/:name", (req) =>
+  Response.createFromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
-  });
-});
+  })
+);
 ```
 
 It will parse the JSON body automatically:
@@ -65,74 +65,78 @@ const server = await Server.create(8000, {
 For a catch-all route, put it LAST. And do this:
 
 ```javascript
-server.route("GET", "*", () => {
-  return Response.createFromJson(
+server.route("GET", "*", () =>
+  Response.createFromJson(
     {
       message: "File not found",
     },
     { statusCode: 404 }
-  );
-});
+  )
+);
 ```
 
 You can also wildcard parts of the route like:
 
 ```javascript
-server.route("GET", "/*/foo", () => {
-  return Response.createFromJson({
+server.route("GET", "/*/foo", () =>
+  Response.createFromJson({
     message: "This will respond to /hello/foo or /goodbye/foo",
-  });
-});
+  })
+);
 ```
 
 And you can use regex within your routes
 
 ```javascript
-server.route("GET", "/hello/?", () => {
-  return Response.createFromJson({
+server.route("GET", "/hello/?", () =>
+  Response.createFromJson({
     message: "This will respond to /hello or /hello/",
-  });
-});
+  })
+);
 ```
 
 To serve a response from a local file:
 
 ```javascript
-server.route("GET", "/hello", () => {
-  return Response.createFromFile("/path/to/file");
-});
+server.route("GET", "/hello", () => Response.createFromFile("/path/to/file"));
+```
+
+If it's a local binary file, like an image:
+
+```javascript
+server.route("GET", "/hello", () =>
+  Response.createFromBinary("/path/to/image")
+);
 ```
 
 Or to respond with a string:
 
 ```javascript
-server.route("GET", "/hello", () => {
-  return Response.createFromString("Hello World!");
-});
+server.route("GET", "/hello", () => Response.createFromString("Hello World!"));
 ```
 
 To set status code:
 
 ```javascript
-server.route("GET", "/hello", () => {
-  return Response.createFromString("Forbidden", {
+server.route("GET", "/hello", () =>
+  Response.createFromString("Forbidden", {
     statusCode: 403,
-  });
-});
+  })
+);
 ```
 
 And to set any headers:
 
 ```javascript
-server.route("GET", "/hello", () => {
-  return Response.createFromString("Forbidden", {
+server.route("GET", "/hello", () =>
+  Response.createFromString("Forbidden", {
     statusCode: 403,
     headers: [
       ["X-Custom-Header", "foobar"],
       ["Cache-Control", "no-store"],
     ],
-  });
-});
+  })
+);
 ```
 
 Minkin also supports middleware, most often used as guards. You can chain callbacks.
@@ -144,9 +148,9 @@ const requireAuthentication = (req: Request) => {
   }
 };
 
-server.route("GET", "/protected", requireAuthentication, () => {
-  return Response.createFromString("OK");
-});
+server.route("GET", "/protected", requireAuthentication, () =>
+  Response.createFromString("OK")
+);
 ```
 
 You can also chain routes if you prefer that syntax:
