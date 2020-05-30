@@ -37,7 +37,6 @@ export interface OptionalParams {
   headers?: Headers;
 }
 
-export type Header = [string, string];
 export type Headers = [string, string][];
 
 export class Response {
@@ -99,16 +98,8 @@ export class Response {
     });
   }
 
-  public set statusCode(value: number) {
-    this._statusCode = value;
-  }
-
   public get statusCode(): number {
     return this._statusCode;
-  }
-
-  public set statusMessage(message: string) {
-    this._statusMessage = message;
   }
 
   public get statusMessage(): string {

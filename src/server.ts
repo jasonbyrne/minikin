@@ -7,48 +7,29 @@ export type RouteCallback = (
   req: Request
 ) => Response | void | Promise<Response | void>;
 
-const asyncFirstResponse = (
-  req: Request,
-  arr: RouteCallback[]
-): Promise<Response> => {
-  return new Promise(async (resolve) => {
-    let res: Response | null = null;
-    for (let i = 0; i < arr.length; i++) {
-      if (!res) {
-        res = (await arr[i](req)) || null;
-      }
+const asyncFirstResponse = async (req: Request, arr: RouteCallback[]) => {
+  let res: Response | null = null;
+  for (let i = 0; i < arr.length; i++) {
+    if (!res) {
+      res = (await arr[i](req)) || null;
     }
-    resolve(
-      res === null
-        ? Response.fromString("No response", { statusCode: 500 })
-        : res
-    );
-  });
+  }
+  return res === null
+    ? Response.fromString("No response", { statusCode: 500 })
+    : res;
 };
 
 export class Server {
-  private _httpPort: number = 3000;
   private _server: http.Server | https.Server;
   private _handlers: [string, string, RouteCallback[]][];
 
-  public get isListening(): boolean {
-    return this._server.listening;
+  public static async listen(port: number, opts?: https.ServerOptions) {
+    return new Server(opts)._listen(port);
   }
 
-  public static async listen(
-    port: number,
-    opts?: https.ServerOptions
-  ): Promise<Server> {
-    const server = new Server(port, opts);
-    await server._listen();
-    return server;
-  }
-
-  private constructor(port: number, secureOpts?: https.ServerOptions) {
-    const listener = (req: http.IncomingMessage, res: http.ServerResponse) => {
+  private constructor(secureOpts?: https.ServerOptions) {
+    const listener = (req: http.IncomingMessage, res: http.ServerResponse) =>
       this._requestHandler(req, res);
-    };
-    this._httpPort = port;
     this._server = secureOpts
       ? https.createServer(secureOpts, listener)
       : http.createServer(listener);
@@ -112,23 +93,14 @@ export class Server {
           this._sendResponse(
             res,
             myResponse ||
-              Response.fromJson(
-                {
-                  message: "No content in response",
-                },
-                { statusCode: 500 }
-              )
+              Response.fromString("No content in response", { statusCode: 500 })
           );
         } catch (ex) {
           this._sendResponse(
             res,
-            Response.fromJson(
-              {
-                message: `Unhandled exception`,
-                details: ex,
-              },
-              { statusCode: 500 }
-            )
+            Response.fromString(`Unhandled exception: ${ex}`, {
+              statusCode: 500,
+            })
           );
         }
         return true;
@@ -145,27 +117,26 @@ export class Server {
     await this._handle(myReq, res);
     this._sendResponse(
       res,
-      Response.fromJson({ message: "Not Found" }, { statusCode: 404 })
+      Response.fromString("Not Found", { statusCode: 404 })
     );
   }
 
   private _sendResponse(res: http.ServerResponse, mr: Response) {
-    res.writeHead(mr.statusCode, mr.statusMessage, mr.headers);
-    res.end(mr.content);
+    res.writeHead(mr.statusCode, mr.statusMessage, mr.headers).end(mr.content);
   }
 
-  private _listen(): Promise<void> {
-    if (this.isListening) {
+  private _listen(port: number): Promise<Server> {
+    if (this._server.listening) {
       throw new Error("HTTP Server is already listening.");
     }
     return new Promise((resolve, reject) => {
       this._server
-        .listen({ port: this._httpPort }, () => {
-          resolve();
+        .listen({ port: port }, () => {
+          resolve(this);
         })
         .on("error", (err: string) => {
           if (err) {
-            return reject(`Could not listen on port ${this._httpPort}: ${err}`);
+            return reject(`Could not listen on port ${port}: ${err}`);
           }
         });
     });
@@ -181,7 +152,7 @@ export class Server {
 
   public async close(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.isListening
+      this._server.listening
         ? this._server.close((err) => {
             err ? reject(err) : resolve();
           })
