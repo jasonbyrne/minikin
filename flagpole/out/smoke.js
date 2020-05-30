@@ -14,21 +14,21 @@ const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.listen(8000);
     server
-        .route("GET", "/hello", () => index_js_1.Response.fromJson({
+        .route("GET /hello", () => index_js_1.Response.fromJson({
         message: "Hello from Minikin!",
     }, {
         headers: [["X-Test", "Hello"]],
     }))
-        .route("GET", "/hello/:name", (req) => index_js_1.Response.fromJson({
+        .route("GET /hello/:name", (req) => index_js_1.Response.fromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
     }))
-        .route("GET", "/cookie", (req) => index_js_1.Response.fromString(req.cookies.test))
-        .route("GET", "/protected", () => { }, (req) => {
+        .route("GET /cookie", (req) => index_js_1.Response.fromString(req.cookies.test))
+        .route("GET /protected", () => { }, (req) => {
         if (!req.headers["Authorization"]) {
             return index_js_1.Response.fromString("foo", { statusCode: 401 });
         }
     }, () => index_js_1.Response.fromString("bar"))
-        .route("GET", "*", () => index_js_1.Response.fromJson({
+        .route("GET *", () => index_js_1.Response.fromJson({
         message: "File not found",
     }, { statusCode: 404 }));
     const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");

@@ -5,7 +5,7 @@ import { Server, Response } from "../../dist/index.js";
   const server = await Server.listen(8000);
 
   server
-    .route("GET", "/hello", () =>
+    .route("GET /hello", () =>
       Response.fromJson(
         {
           message: "Hello from Minikin!",
@@ -15,15 +15,14 @@ import { Server, Response } from "../../dist/index.js";
         }
       )
     )
-    .route("GET", "/hello/:name", (req) =>
+    .route("GET /hello/:name", (req) =>
       Response.fromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
       })
     )
-    .route("GET", "/cookie", (req) => Response.fromString(req.cookies.test))
+    .route("GET /cookie", (req) => Response.fromString(req.cookies.test))
     .route(
-      "GET",
-      "/protected",
+      "GET /protected",
       () => {},
       (req) => {
         if (!req.headers["Authorization"]) {
@@ -32,7 +31,7 @@ import { Server, Response } from "../../dist/index.js";
       },
       () => Response.fromString("bar")
     )
-    .route("GET", "*", () =>
+    .route("GET *", () =>
       Response.fromJson(
         {
           message: "File not found",

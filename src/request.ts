@@ -4,17 +4,8 @@ interface KeyValue {
   [key: string]: string;
 }
 
-export type HttpMethod =
-  | "GET"
-  | "POST"
-  | "PATCH"
-  | "PUT"
-  | "DELETE"
-  | "OPTIONS"
-  | "HEAD";
-
 interface iRequestOpts {
-  method: HttpMethod;
+  method: string;
   url: string;
   headers: http.IncomingHttpHeaders;
   body: string;
@@ -22,7 +13,7 @@ interface iRequestOpts {
 }
 
 export class Request implements iRequestOpts {
-  public method: HttpMethod;
+  public method: string;
   public url: string;
   public headers: http.IncomingHttpHeaders;
   public body: string;

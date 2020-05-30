@@ -1,8 +1,11 @@
 import * as http from "http";
 import * as https from "https";
-import { RouteCallback } from "./handler";
-import { HttpMethod, Request } from "./request";
 import { Response } from "./response";
+import { Request } from "./request";
+
+export type RouteCallback = (
+  req: Request
+) => Response | void | Promise<Response | void>;
 
 const asyncFirstResponse = (
   req: Request,
@@ -26,7 +29,7 @@ const asyncFirstResponse = (
 export class Server {
   private _httpPort: number = 3000;
   private _server: http.Server | https.Server;
-  private _handlers: [HttpMethod, string, RouteCallback[]][];
+  private _handlers: [string, string, RouteCallback[]][];
 
   public get isListening(): boolean {
     return this._server.listening;
@@ -65,7 +68,7 @@ export class Server {
               body: Buffer.concat(chunks).toString(),
               url: req.url || "/",
               headers: req.headers,
-              method: (req.method?.toUpperCase() || "GET") as HttpMethod,
+              method: req.method?.toUpperCase() || "GET",
               params: {},
             })
           );
@@ -168,12 +171,11 @@ export class Server {
     });
   }
 
-  public route(
-    method: HttpMethod,
-    path: string,
-    ...callbacks: RouteCallback[]
-  ): Server {
-    this._handlers.push([method, path, callbacks]);
+  public route(path: string, ...callbacks: RouteCallback[]): Server {
+    const arrPath = path.trim().split(" ");
+    const method = arrPath.length > 1 ? arrPath[0].toUpperCase() : "GET";
+    const uri = arrPath[arrPath.length > 1 ? 1 : 0];
+    this._handlers.push([method, uri, callbacks]);
     return this;
   }
 

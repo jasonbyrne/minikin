@@ -24,7 +24,7 @@ import { Server, Response } from "minikin";
 (async () => {
   const server = await Server.listen(8000);
 
-  server.route("GET", "/hello", () =>
+  server.route("GET /hello", () =>
     Response.fromJson({
       message: "Hello from Minikin!",
     })
@@ -35,7 +35,7 @@ import { Server, Response } from "minikin";
 Minikin can also handle URL path params out of the box:
 
 ```javascript
-server.route("GET", "/hello/:name", (req) =>
+server.route("GET /hello/:name", (req) =>
   Response.fromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
   })
@@ -45,7 +45,7 @@ server.route("GET", "/hello/:name", (req) =>
 It will parse the JSON body automatically:
 
 ```javascript
-server.route("POST", "/person", (req) => {
+server.route("POST /person", (req) => {
   const name = req.body.name; // { name: "Jason" }
   return Response.fromJson({
     message: `You want to create a new person named ${name}`,
@@ -65,7 +65,7 @@ const server = await Server.listen(8000, {
 For a catch-all route, put it LAST. And do this:
 
 ```javascript
-server.route("GET", "*", () =>
+server.route("GET *", () =>
   Response.fromJson(
     {
       message: "File not found",
@@ -78,7 +78,7 @@ server.route("GET", "*", () =>
 You can also wildcard parts of the route like:
 
 ```javascript
-server.route("GET", "/*/foo", () =>
+server.route("GET /*/foo", () =>
   Response.fromJson({
     message: "This will respond to /hello/foo or /goodbye/foo",
   })
@@ -88,7 +88,7 @@ server.route("GET", "/*/foo", () =>
 And you can use regex within your routes
 
 ```javascript
-server.route("GET", "/hello/?", () =>
+server.route("GET /hello/?", () =>
   Response.fromJson({
     message: "This will respond to /hello or /hello/",
   })
@@ -98,7 +98,7 @@ server.route("GET", "/hello/?", () =>
 To read cookies:
 
 ```javascript
-server.route("GET", "/hello", (req) =>
+server.route("GET /hello", (req) =>
   Response.fromString(req.cookies.myCookie ? "cookie set" : "cookie not set")
 );
 ```
@@ -106,7 +106,7 @@ server.route("GET", "/hello", (req) =>
 To read headers:
 
 ```javascript
-server.route("GET", "/hello", (req) =>
+server.route("GET /hello", (req) =>
   Response.fromString(req.headers.someHeader ? "header set" : "header not set")
 );
 ```
@@ -114,25 +114,25 @@ server.route("GET", "/hello", (req) =>
 To serve a response from a local file:
 
 ```javascript
-server.route("GET", "/hello", () => Response.fromFile("/path/to/file"));
+server.route("GET /hello", () => Response.fromFile("/path/to/file"));
 ```
 
 If it's a local binary file, like an image:
 
 ```javascript
-server.route("GET", "/hello", () => Response.fromBinary("/path/to/image"));
+server.route("GET /hello", () => Response.fromBinary("/path/to/image"));
 ```
 
 Or to respond with a string:
 
 ```javascript
-server.route("GET", "/hello", () => Response.fromString("Hello World!"));
+server.route("GET /hello", () => Response.fromString("Hello World!"));
 ```
 
 To set status code:
 
 ```javascript
-server.route("GET", "/hello", () =>
+server.route("GET /hello", () =>
   Response.fromString("Forbidden", {
     statusCode: 403,
   })
@@ -142,7 +142,7 @@ server.route("GET", "/hello", () =>
 And to set any headers:
 
 ```javascript
-server.route("GET", "/hello", () =>
+server.route("GET /hello", () =>
   Response.fromString("Forbidden", {
     statusCode: 403,
     headers: [
@@ -162,7 +162,7 @@ const requireAuthentication = (req: Request) => {
   }
 };
 
-server.route("GET", "/protected", requireAuthentication, () =>
+server.route("GET /protected", requireAuthentication, () =>
   Response.fromString("OK")
 );
 ```
@@ -171,11 +171,11 @@ You can also chain routes if you prefer that syntax:
 
 ```javascript
 server
-  .route("GET", "/hello", () => Response.fromString("hello"))
-  .route("GET", "/hello/:name", (req) => Response.fromJson({
+  .route("GET /hello", () => Response.fromString("hello"))
+  .route("GET /hello/:name", (req) => Response.fromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
   })
-  .route("GET", "/admin", () => Response.fromString("Forbidden", {
+  .route("GET /admin", () => Response.fromString("Forbidden", {
     statusCode: 403
   });
 ```
