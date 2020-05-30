@@ -153,7 +153,7 @@ You can also chain routes if you prefer that syntax:
 
 ```javascript
 server
-  .route("GET", "/hello", () => Response.createFromString("hello"));
+  .route("GET", "/hello", () => Response.createFromString("hello"))
   .route("GET", "/hello/:name", (req) => Response.createFromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
   })
