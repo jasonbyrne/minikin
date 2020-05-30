@@ -13,19 +13,25 @@ const flagpole_1 = require("flagpole");
 const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.create(8000);
-    server.route("GET", "/hello", () => {
+    server
+        .route("GET", "/hello", () => {
         return index_js_1.Response.createFromJson({
             message: "Hello from Minikin!",
         }, {
             headers: [["X-Test", "Hello"]],
         });
-    });
-    server.route("GET", "/hello/:name", (req) => {
+    })
+        .route("GET", "/hello/:name", (req) => {
         return index_js_1.Response.createFromJson({
             message: `Hello to ${req.params.name} from Minikin!`,
         });
-    });
-    server.route("GET", "*", () => {
+    })
+        .route("GET", "/protected", () => { }, () => {
+        return index_js_1.Response.createFromString("foo", { statusCode: 403 });
+    }, () => {
+        return index_js_1.Response.createFromString("bar");
+    })
+        .route("GET", "*", () => {
         return index_js_1.Response.createFromJson({
             message: "File not found",
         }, { statusCode: 404 });
@@ -55,5 +61,12 @@ const index_js_1 = require("../../dist/index.js");
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.statusCode).equals(404);
         context.assert(yield context.find("message")).equals("File not found");
+    }));
+    suite
+        .scenario("Should get a 403", "resource")
+        .open("/protected")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.statusCode).equals(403);
+        context.assert(context.response.body).equals("foo");
     }));
 }))();

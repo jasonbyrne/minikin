@@ -4,10 +4,29 @@ import { RouteCallback } from "./handler";
 import { HttpMethod, Request } from "./request";
 import { Response } from "./response";
 
+const asyncFirstResponse = (
+  req: Request,
+  arr: RouteCallback[]
+): Promise<Response> => {
+  return new Promise(async (resolve) => {
+    let res: Response | null = null;
+    for (let i = 0; i < arr.length; i++) {
+      if (!res) {
+        res = (await arr[i](req)) || null;
+      }
+    }
+    resolve(
+      res === null
+        ? Response.createFromString("No response", { statusCode: 500 })
+        : res
+    );
+  });
+};
+
 export class Server {
   private _httpPort: number = 3000;
   private _server: http.Server | https.Server;
-  private _handlers: [HttpMethod, string, RouteCallback][];
+  private _handlers: [HttpMethod, string, RouteCallback[]][];
 
   public get isListening(): boolean {
     return this._server.listening;
@@ -83,7 +102,7 @@ export class Server {
         }
         try {
           // Get response from handler
-          const myResponse = await handler[2](myReq);
+          const myResponse = await asyncFirstResponse(myReq, handler[2]);
           // Send a response
           this._sendResponse(
             res,
@@ -125,12 +144,9 @@ export class Server {
     );
   }
 
-  private _sendResponse(
-    httpResponse: http.ServerResponse,
-    myResponse: Response
-  ) {
-    httpResponse.writeHead(myResponse.statusCode, myResponse.headers);
-    httpResponse.end(myResponse.content);
+  private _sendResponse(res: http.ServerResponse, mr: Response) {
+    res.writeHead(mr.statusCode, mr.statusMessage, mr.headers);
+    res.end(mr.content);
   }
 
   private _listen(): Promise<void> {
@@ -150,8 +166,13 @@ export class Server {
     });
   }
 
-  public route(method: HttpMethod, path: string, callback: RouteCallback) {
-    this._handlers.push([method, path, callback]);
+  public route(
+    method: HttpMethod,
+    path: string,
+    ...callbacks: RouteCallback[]
+  ): Server {
+    this._handlers.push([method, path, callbacks]);
+    return this;
   }
 
   public async close(): Promise<void> {

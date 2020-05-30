@@ -4,31 +4,41 @@ import { Server, Response } from "../../dist/index.js";
 (async () => {
   const server = await Server.create(8000);
 
-  server.route("GET", "/hello", () => {
-    return Response.createFromJson(
-      {
-        message: "Hello from Minikin!",
+  server
+    .route("GET", "/hello", () => {
+      return Response.createFromJson(
+        {
+          message: "Hello from Minikin!",
+        },
+        {
+          headers: [["X-Test", "Hello"]],
+        }
+      );
+    })
+    .route("GET", "/hello/:name", (req) => {
+      return Response.createFromJson({
+        message: `Hello to ${req.params.name} from Minikin!`,
+      });
+    })
+    .route(
+      "GET",
+      "/protected",
+      () => {},
+      () => {
+        return Response.createFromString("foo", { statusCode: 403 });
       },
-      {
-        headers: [["X-Test", "Hello"]],
+      () => {
+        return Response.createFromString("bar");
       }
-    );
-  });
-
-  server.route("GET", "/hello/:name", (req) => {
-    return Response.createFromJson({
-      message: `Hello to ${req.params.name} from Minikin!`,
+    )
+    .route("GET", "*", () => {
+      return Response.createFromJson(
+        {
+          message: "File not found",
+        },
+        { statusCode: 404 }
+      );
     });
-  });
-
-  server.route("GET", "*", () => {
-    return Response.createFromJson(
-      {
-        message: "File not found",
-      },
-      { statusCode: 404 }
-    );
-  });
 
   const suite = flagpole("Basic Smoke Test of Site").base(
     "http://localhost:8000"
@@ -61,5 +71,13 @@ import { Server, Response } from "../../dist/index.js";
     .next(async (context) => {
       context.assert(context.response.statusCode).equals(404);
       context.assert(await context.find("message")).equals("File not found");
+    });
+
+  suite
+    .scenario("Should get a 403", "resource")
+    .open("/protected")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(403);
+      context.assert(context.response.body).equals("foo");
     });
 })();

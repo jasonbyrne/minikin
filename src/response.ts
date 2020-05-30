@@ -16,8 +16,24 @@ const commonFileTypes = {
   txt: "text/plain",
 };
 
+const defaultStatusMessage = {
+  200: "OK",
+  201: "Created",
+  202: "Accepted",
+  204: "No Content",
+  301: "Temporary Redirect",
+  302: "Permanent Redirect",
+  400: "Bad Request",
+  401: "Not Authenticated",
+  403: "Permission Denied",
+  404: "Not Found",
+  500: "Unknown Error",
+  504: "Gateway Timeout",
+};
+
 export interface OptionalParams {
   statusCode?: number;
+  statusMessage?: string;
   headers?: Headers;
 }
 
@@ -25,8 +41,9 @@ export type Header = [string, string];
 export type Headers = [string, string][];
 
 export class Response {
-  private _content: string | Buffer = "";
-  private _statusCode: number = 200;
+  private _content: string | Buffer;
+  private _statusCode: number;
+  private _statusMessage: string;
   private _headers: Headers = [["Content-Type", "text/html"]];
 
   static createFromBinary(filePath: string, opts?: OptionalParams) {
@@ -82,8 +99,20 @@ export class Response {
     });
   }
 
+  public set statusCode(value: number) {
+    this._statusCode = value;
+  }
+
   public get statusCode(): number {
     return this._statusCode;
+  }
+
+  public set statusMessage(message: string) {
+    this._statusMessage = message;
+  }
+
+  public get statusMessage(): string {
+    return this._statusMessage || defaultStatusMessage[this._statusCode] || "";
   }
 
   public get content(): string | Buffer {
@@ -101,8 +130,9 @@ export class Response {
   }
 
   public constructor(content: string | Buffer, opts: OptionalParams) {
-    this._content = content;
-    this._statusCode = opts.statusCode || this._statusCode;
+    this._content = content || "";
+    this._statusCode = opts.statusCode || 200;
+    this._statusMessage = opts.statusMessage || "";
     opts.headers?.forEach((header) => {
       this.setHeader(header[0], header[1]);
     });
