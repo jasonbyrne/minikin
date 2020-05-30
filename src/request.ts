@@ -9,7 +9,7 @@ export type HttpMethod =
   | "OPTIONS"
   | "HEAD";
 
-export interface MinikinRequest {
+export interface Request {
   method: HttpMethod;
   url: string;
   headers: http.IncomingHttpHeaders;

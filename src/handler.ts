@@ -1,8 +1,6 @@
-import { MinikinRequest, HttpMethod } from "./request";
-import { MinikinResponse } from "./response";
+import { Request, HttpMethod } from "./request";
+import { Response } from "./response";
 
-export type MinikinRouteCallback = (
-  req: MinikinRequest
-) => MinikinResponse | Promise<MinikinResponse>;
+export type RouteCallback = (req: Request) => Response | Promise<Response>;
 
-export type MinikinHandler = [HttpMethod, string, MinikinRouteCallback];
+export type Handler = [HttpMethod, string, RouteCallback];

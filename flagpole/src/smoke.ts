@@ -1,23 +1,28 @@
 import flagpole from "flagpole";
-import { MinikinServer, MinikinResponse } from "../../dist/index.js";
+import { Server, Response } from "../../dist/index.js";
 
 (async () => {
-  const server = await MinikinServer.create(8000);
+  const server = await Server.create(8000);
 
   server.route("GET", "/hello", () => {
-    return MinikinResponse.createFromJson({
-      message: "Hello from Minikin!",
-    });
+    return Response.createFromJson(
+      {
+        message: "Hello from Minikin!",
+      },
+      {
+        headers: [["X-Test", "Hello"]],
+      }
+    );
   });
 
   server.route("GET", "/hello/:name", (req) => {
-    return MinikinResponse.createFromJson({
+    return Response.createFromJson({
       message: `Hello to ${req.params.name} from Minikin!`,
     });
   });
 
   server.route("GET", "*", () => {
-    return MinikinResponse.createFromJson(
+    return Response.createFromJson(
       {
         message: "File not found",
       },
@@ -39,6 +44,7 @@ import { MinikinServer, MinikinResponse } from "../../dist/index.js";
     .next(async (context) => {
       const message = await context.exists("message");
       context.assert(message.$).equals("Hello from Minikin!");
+      context.assert(context.response.header("X-Test")).equals("Hello");
     });
 
   suite

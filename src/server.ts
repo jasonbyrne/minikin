@@ -1,13 +1,13 @@
 import * as http from "http";
 import * as https from "https";
-import { MinikinRouteCallback } from "./handler";
-import { HttpMethod, MinikinRequest } from "./request";
-import { MinikinResponse } from "./response";
+import { RouteCallback } from "./handler";
+import { HttpMethod, Request } from "./request";
+import { Response } from "./response";
 
-export class MinikinServer {
+export class Server {
   private _httpPort: number = 3000;
   private _server: http.Server | https.Server;
-  private _handlers: [HttpMethod, string, MinikinRouteCallback][];
+  private _handlers: [HttpMethod, string, RouteCallback][];
 
   public get isListening(): boolean {
     return this._server.listening;
@@ -16,8 +16,8 @@ export class MinikinServer {
   public static async create(
     port: number,
     opts?: https.ServerOptions
-  ): Promise<MinikinServer> {
-    const server = new MinikinServer(port, opts);
+  ): Promise<Server> {
+    const server = new Server(port, opts);
     await server._listen();
     return server;
   }
@@ -33,9 +33,7 @@ export class MinikinServer {
     this._handlers = [];
   }
 
-  private async _parseRequest(
-    req: http.IncomingMessage
-  ): Promise<MinikinRequest> {
+  private async _parseRequest(req: http.IncomingMessage): Promise<Request> {
     return new Promise((resolve) => {
       const chunks: any[] = [];
       req
@@ -55,7 +53,7 @@ export class MinikinServer {
   }
 
   private async _handle(
-    myReq: MinikinRequest,
+    myReq: Request,
     res: http.ServerResponse
   ): Promise<boolean> {
     // Loop through all of our handlers
@@ -90,7 +88,7 @@ export class MinikinServer {
           this._sendResponse(
             res,
             myResponse ||
-              MinikinResponse.createFromJson(
+              Response.createFromJson(
                 {
                   message: "No content in response",
                 },
@@ -100,7 +98,7 @@ export class MinikinServer {
         } catch (ex) {
           this._sendResponse(
             res,
-            MinikinResponse.createFromJson(
+            Response.createFromJson(
               {
                 message: `Unhandled exception`,
                 details: ex,
@@ -123,16 +121,13 @@ export class MinikinServer {
     await this._handle(myReq, res);
     this._sendResponse(
       res,
-      MinikinResponse.createFromJson(
-        { message: "Not Found" },
-        { statusCode: 404 }
-      )
+      Response.createFromJson({ message: "Not Found" }, { statusCode: 404 })
     );
   }
 
   private _sendResponse(
     httpResponse: http.ServerResponse,
-    myResponse: MinikinResponse
+    myResponse: Response
   ) {
     httpResponse.writeHead(myResponse.statusCode, myResponse.headers);
     httpResponse.end(myResponse.content);
@@ -155,11 +150,7 @@ export class MinikinServer {
     });
   }
 
-  public route(
-    method: HttpMethod,
-    path: string,
-    callback: MinikinRouteCallback
-  ) {
+  public route(method: HttpMethod, path: string, callback: RouteCallback) {
     this._handlers.push([method, path, callback]);
   }
 

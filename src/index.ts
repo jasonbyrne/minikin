@@ -1,21 +1,16 @@
-import { MinikinRouteCallback, MinikinHandler } from "./handler";
-import { MinikinRequest, HttpMethod } from "./request";
-import {
-  MinikinResponse,
-  MinikinHeader,
-  MinikinHeaders,
-  optionalParams,
-} from "./response";
-import { MinikinServer } from "./server";
+import { RouteCallback, Handler } from "./handler";
+import { Request, HttpMethod } from "./request";
+import { Response, Header, Headers, OptionalParams } from "./response";
+import { Server } from "./server";
 
 export {
-  MinikinServer,
-  MinikinResponse,
-  MinikinRequest,
-  MinikinRouteCallback,
-  MinikinHandler,
+  Server,
+  Response,
+  Request,
+  RouteCallback,
+  Handler,
   HttpMethod,
-  MinikinHeader,
-  MinikinHeaders,
-  optionalParams,
+  Header,
+  Headers,
+  OptionalParams,
 };

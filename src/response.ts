@@ -16,26 +16,26 @@ const commonFileTypes = {
   txt: "text/plain",
 };
 
-export interface optionalParams {
+export interface OptionalParams {
   statusCode?: number;
-  headers?: MinikinHeaders;
+  headers?: Headers;
 }
 
-export type MinikinHeader = [string, string];
-export type MinikinHeaders = [string, string][];
+export type Header = [string, string];
+export type Headers = [string, string][];
 
-export class MinikinResponse {
+export class Response {
   private _content: string | Buffer = "";
   private _statusCode: number = 200;
-  private _headers: MinikinHeaders = [["Content-Type", "text/html"]];
+  private _headers: Headers = [["Content-Type", "text/html"]];
 
-  static createFromBinary(filePath: string, opts?: optionalParams) {
-    return MinikinResponse.createFromFile(filePath, opts, "binary");
+  static createFromBinary(filePath: string, opts?: OptionalParams) {
+    return Response.createFromFile(filePath, opts, "binary");
   }
 
   static createFromFile(
     filePath: string,
-    opts?: optionalParams,
+    opts?: OptionalParams,
     encoding:
       | "utf8"
       | "binary"
@@ -49,7 +49,7 @@ export class MinikinResponse {
     const extension = path.extname(fullPath).substr(1);
     if (fs.existsSync(fullPath)) {
       const content = fs.readFileSync(fullPath, encoding);
-      return new MinikinResponse(content, {
+      return new Response(content, {
         ...{
           headers: [
             ["Content-Type", commonFileTypes[extension] || "text/html"],
@@ -58,14 +58,14 @@ export class MinikinResponse {
         ...opts,
       });
     } else {
-      return MinikinResponse.createFromString(`${fullPath} was not found`, {
+      return Response.createFromString(`${fullPath} was not found`, {
         statusCode: 404,
       });
     }
   }
 
-  static createFromString(content: string, opts?: optionalParams) {
-    return new MinikinResponse(content, {
+  static createFromString(content: string, opts?: OptionalParams) {
+    return new Response(content, {
       ...{
         headers: [["Content-Type", "text/plain"]],
       },
@@ -73,8 +73,8 @@ export class MinikinResponse {
     });
   }
 
-  static createFromJson(json: any, opts?: optionalParams) {
-    return new MinikinResponse(JSON.stringify(json), {
+  static createFromJson(json: any, opts?: OptionalParams) {
+    return new Response(JSON.stringify(json), {
       ...{
         headers: [["Content-Type", "application/json"]],
       },
@@ -100,7 +100,7 @@ export class MinikinResponse {
     return headers;
   }
 
-  public constructor(content: string | Buffer, opts: optionalParams) {
+  public constructor(content: string | Buffer, opts: OptionalParams) {
     this._content = content;
     this._statusCode = opts.statusCode || this._statusCode;
     opts.headers?.forEach((header) => {
@@ -108,14 +108,14 @@ export class MinikinResponse {
     });
   }
 
-  public replace(key: string, value: string): MinikinResponse {
+  public replace(key: string, value: string): Response {
     if (typeof this._content === "string") {
       this._content = this._content.replace("${" + key + "}", value);
     }
     return this;
   }
 
-  public parse(replace: { [key: string]: string }): MinikinResponse {
+  public parse(replace: { [key: string]: string }): Response {
     for (let key in replace) {
       this.replace(key, replace[key]);
     }
