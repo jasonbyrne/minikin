@@ -1,5 +1,7 @@
 # Minikin
 
+![Size][https://badgen.net/badge/bundlephobia/minzip/minikin]
+
 Yeah. Another web server framework. Why?
 
 The other ones are really big. They have dependencies and do too much. I just wanted a simple way to start up an HTTP server and handle some routes. No fluff.
