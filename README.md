@@ -95,6 +95,18 @@ server.route("GET /hello/?", () =>
 );
 ```
 
+If you need to handle multiple HTTP Methods with the same handler
+
+```javascript
+server.route("PUT|PATCH /hello", () => Response.fromString("Hi"));
+```
+
+You can also do a wildcard method
+
+```javascript
+server.route("* /goodbye", () => Response.fromString("Cya"));
+```
+
 To read cookies:
 
 ```javascript
@@ -150,6 +162,38 @@ server.route("GET /hello", () =>
       ["Cache-Control", "no-store"],
     ],
   })
+);
+```
+
+Alternately you can set headers like this
+
+```javascript
+server.route("GET /hello", () =>
+  Response.fromString("Hey!").setHeader("X-Foo", "Bar")
+);
+```
+
+Similarly you can set cookies on the response
+
+```javascript
+server.route("GET /hello", () =>
+  Response.fromString("Hey!").setCookie("X-Foo", "Bar", { "Max-Age": 60 })
+);
+```
+
+Simple templating with variable replacement is built in, as well. This will replace any strings with `{{ name }}` with the corresponding value in the second argument.
+
+```javascript
+server.route("GET /hello", () =>
+  Response.fromTemplate("public/hello.html", { name: "Jason" })
+);
+```
+
+Alternately, you can call the render method on any response to pass in the key-value replacement.
+
+```javascript
+server.route("GET /hello/:name", () =>
+  Response.fromString("Hello, {{ name }}").render({ name: req.params.name })
 );
 ```
 

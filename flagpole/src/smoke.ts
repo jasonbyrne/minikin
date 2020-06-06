@@ -21,6 +21,9 @@ import { Server, Response } from "../../dist/index.js";
       })
     )
     .route("GET /cookie", (req) => Response.fromString(req.cookies.test))
+    .route("GET /template", (req) =>
+      Response.fromString("Hello, {{ name }}").render({ name: "Jason" })
+    )
     .route(
       "GET /protected",
       () => {},
@@ -38,7 +41,9 @@ import { Server, Response } from "../../dist/index.js";
         },
         { statusCode: 404 }
       )
-    );
+    )
+    .route("PATCH|PUT *", () => Response.fromString("PATCH or PUT"))
+    .route("* *", () => Response.fromString("No match"));
 
   const suite = flagpole("Basic Smoke Test of Site").base(
     "http://localhost:8000"
@@ -87,5 +92,29 @@ import { Server, Response } from "../../dist/index.js";
     .setHeader("cookie", "test=foobar")
     .next(async (context) => {
       context.assert(context.response.body).equals("foobar");
+    });
+
+  suite
+    .scenario("Test Wildcard Method", "resource")
+    .open("POST /random")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(200);
+      context.assert(context.response.body).equals("No match");
+    });
+
+  suite
+    .scenario("Test Pipe-Delimited Methods", "resource")
+    .open("PUT /random")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(200);
+      context.assert(context.response.body).equals("PATCH or PUT");
+    });
+
+  suite
+    .scenario("Test Render Template", "resource")
+    .open("GET /template")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(200);
+      context.assert(context.response.body).equals("Hello, Jason");
     });
 })();

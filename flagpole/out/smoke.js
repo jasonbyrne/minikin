@@ -23,6 +23,7 @@ const index_js_1 = require("../../dist/index.js");
         message: `Hello to ${req.params.name} from Minikin!`,
     }))
         .route("GET /cookie", (req) => index_js_1.Response.fromString(req.cookies.test))
+        .route("GET /template", (req) => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }))
         .route("GET /protected", () => { }, (req) => {
         if (!req.headers["Authorization"]) {
             return index_js_1.Response.fromString("foo", { statusCode: 401 });
@@ -30,7 +31,9 @@ const index_js_1 = require("../../dist/index.js");
     }, () => index_js_1.Response.fromString("bar"))
         .route("GET *", () => index_js_1.Response.fromJson({
         message: "File not found",
-    }, { statusCode: 404 }));
+    }, { statusCode: 404 }))
+        .route("PATCH|PUT *", () => index_js_1.Response.fromString("PATCH or PUT"))
+        .route("* *", () => index_js_1.Response.fromString("No match"));
     const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();
@@ -70,5 +73,26 @@ const index_js_1 = require("../../dist/index.js");
         .setHeader("cookie", "test=foobar")
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.body).equals("foobar");
+    }));
+    suite
+        .scenario("Test Wildcard Method", "resource")
+        .open("POST /random")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.statusCode).equals(200);
+        context.assert(context.response.body).equals("No match");
+    }));
+    suite
+        .scenario("Test Pipe-Delimited Methods", "resource")
+        .open("PUT /random")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.statusCode).equals(200);
+        context.assert(context.response.body).equals("PATCH or PUT");
+    }));
+    suite
+        .scenario("Test Render Template", "resource")
+        .open("GET /template")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.statusCode).equals(200);
+        context.assert(context.response.body).equals("Hello, Jason");
     }));
 }))();

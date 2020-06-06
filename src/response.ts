@@ -38,12 +38,38 @@ export interface OptionalParams {
 }
 
 export type Headers = [string, string][];
+export type TemplateKeyValues = { [key: string]: string };
+export type Encoding =
+  | "utf8"
+  | "binary"
+  | "hex"
+  | "ascii"
+  | "base64"
+  | "latin1"
+  | null;
+
+export interface CookieParams {
+  "Max-Age"?: number;
+  Domain?: string;
+  Path?: string;
+  HttpOnly?: boolean;
+  SameSite?: string;
+  Expires?: Date;
+}
 
 export class Response {
   private _content: string | Buffer;
   private _statusCode: number;
   private _statusMessage: string;
-  private _headers: Headers = [["Content-Type", "text/html"]];
+  private _headers: Headers = [["server", "minikin"]];
+
+  static fromTemplate(
+    filePath: string,
+    kv: TemplateKeyValues,
+    opts?: OptionalParams
+  ) {
+    return Response.fromFile(filePath, opts).render(kv);
+  }
 
   static fromBinary(filePath: string, opts?: OptionalParams) {
     return Response.fromFile(filePath, opts, "binary");
@@ -52,14 +78,7 @@ export class Response {
   static fromFile(
     filePath: string,
     opts?: OptionalParams,
-    encoding:
-      | "utf8"
-      | "binary"
-      | "hex"
-      | "ascii"
-      | "base64"
-      | "latin1"
-      | null = "utf8"
+    encoding: Encoding = "utf8"
   ) {
     const fullPath = path.join(process.cwd(), filePath);
     const extension = path.extname(fullPath).substr(1);
@@ -129,35 +148,7 @@ export class Response {
     });
   }
 
-  public replace(key: string, value: string): Response {
-    if (typeof this._content === "string") {
-      this._content = this._content.replace("${" + key + "}", value);
-    }
-    return this;
-  }
-
-  public parse(replace: { [key: string]: string }): Response {
-    for (let key in replace) {
-      this.replace(key, replace[key]);
-    }
-    return this;
-  }
-
-  public setHeader(key: string, value: string) {
-    const i = this.indexOfHeader(key);
-    if (i >= 0) {
-      this._headers[i][1] = value;
-    } else {
-      this._headers.push([key, value]);
-    }
-  }
-
-  public getHeader(key: string): string | null {
-    const i = this.indexOfHeader(key);
-    return i >= 0 ? this._headers[i][1] : null;
-  }
-
-  public indexOfHeader(key: string): number {
+  private _indexOfHeader(key: string): number {
     let index: number = -1;
     key = key.toLowerCase();
     this._headers.some((header, i) => {
@@ -168,5 +159,49 @@ export class Response {
       return false;
     });
     return index;
+  }
+
+  private _replace(key: string, value: string): Response {
+    if (typeof this._content === "string") {
+      this._content = this._content.replace(
+        new RegExp(`{{ *${key} *}}`, "g"),
+        value
+      );
+    }
+    return this;
+  }
+
+  public render(replace: TemplateKeyValues): Response {
+    for (let key in replace) {
+      this._replace(key, replace[key]);
+    }
+    return this;
+  }
+
+  public setCookie(
+    key: string,
+    value: string,
+    params?: CookieParams
+  ): Response {
+    const arrParams: string[] = params
+      ? Object.keys(params).map((key) => {
+          return `${key}=${params[key]}`;
+        })
+      : [];
+    this._headers.push([
+      "Set-Cookie",
+      `${key}=${value}; ${arrParams.join("; ")}`,
+    ]);
+    return this;
+  }
+
+  public setHeader(key: string, value: string): Response {
+    const i = this._indexOfHeader(key);
+    if (i >= 0) {
+      this._headers[i][1] = value;
+    } else {
+      this._headers.push([key, value]);
+    }
+    return this;
   }
 }

@@ -7,6 +7,8 @@ export type RouteCallback = (
   req: Request
 ) => Response | void | Promise<Response | void>;
 
+export type Handler = [string, string, RouteCallback[]];
+
 const asyncFirstResponse = async (req: Request, arr: RouteCallback[]) => {
   let res: Response | null = null;
   for (let i = 0; i < arr.length; i++) {
@@ -21,7 +23,7 @@ const asyncFirstResponse = async (req: Request, arr: RouteCallback[]) => {
 
 export class Server {
   private _server: http.Server | https.Server;
-  private _handlers: [string, string, RouteCallback[]][];
+  private _handlers: Handler[];
 
   public static async listen(port: number, opts?: https.ServerOptions) {
     return new Server(opts)._listen(port);
@@ -57,39 +59,52 @@ export class Server {
     });
   }
 
+  private _pathMatches(handler: Handler, req: Request) {
+    const regexPath =
+      handler[1] === "*"
+        ? new RegExp(".*")
+        : new RegExp(
+            "^" +
+              handler[1]
+                .replace(/\/:[A-Za-z]+/g, "/([^/]+)")
+                .replace(/\/\*/, "/.*") +
+              "$"
+          );
+    return req.url?.match(regexPath);
+  }
+
+  private _methodMatches(handler: Handler, req: Request) {
+    const methods = handler[0].split("|");
+    return methods.includes(req.method) || methods.includes("*");
+  }
+
+  private _parseParams(
+    handler: Handler,
+    pathMatches: RegExpMatchArray,
+    req: Request
+  ) {
+    const params = handler[1].match(/\/:([a-z]+)/gi)?.map((key) => {
+      return key.substr(2);
+    });
+    if (pathMatches.length > 1 && params && params.length > 0) {
+      params.forEach((key, i) => {
+        req.params[key] = pathMatches[i + 1];
+      });
+    }
+  }
+
   private async _handle(
     myReq: Request,
     res: http.ServerResponse
   ): Promise<boolean> {
-    // Loop through all of our handlers
     for (let i = 0; i < this._handlers.length; i++) {
       const handler = this._handlers[i];
-      // See if the path and method match one of them
-      const regexPath =
-        handler[1] === "*"
-          ? new RegExp(".*")
-          : new RegExp(
-              "^" +
-                handler[1]
-                  .replace(/\/:[A-Za-z]+/g, "/([^/]+)")
-                  .replace(/\/\*/, "/.*") +
-                "$"
-            );
-      const pathMatches = myReq.url?.match(regexPath);
-      if (myReq.method == handler[0] && pathMatches) {
-        // Parse params from route
-        const params = handler[1].match(/\/:([a-z]+)/gi)?.map((key) => {
-          return key.substr(2);
-        });
-        if (pathMatches.length > 1 && params && params.length > 0) {
-          params.forEach((key, i) => {
-            myReq.params[key] = pathMatches[i + 1];
-          });
-        }
+      const pathMatches = this._pathMatches(handler, myReq);
+      const methodMathces = this._methodMatches(handler, myReq);
+      if (methodMathces && pathMatches) {
+        this._parseParams(handler, pathMatches, myReq);
         try {
-          // Get response from handler
           const myResponse = await asyncFirstResponse(myReq, handler[2]);
-          // Send a response
           this._sendResponse(
             res,
             myResponse ||
