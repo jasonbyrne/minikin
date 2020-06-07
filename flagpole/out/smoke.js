@@ -22,6 +22,9 @@ const index_js_1 = require("../../dist/index.js");
         .route("GET /hello/:name", (req) => index_js_1.Response.fromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
     }))
+        .route("GET /trailers", (req) => index_js_1.Response.fromString("Hi", {
+        trailers: [["foo", "bar"]],
+    }))
         .route("GET /cookie", (req) => index_js_1.Response.fromString(req.cookies.test))
         .route("GET /template", (req) => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }))
         .route("GET /protected", () => { }, (req) => {
@@ -94,5 +97,11 @@ const index_js_1 = require("../../dist/index.js");
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.statusCode).equals(200);
         context.assert(context.response.body).equals("Hello, Jason");
+    }));
+    suite
+        .scenario("Test Trailers", "resource")
+        .open("GET /trailers")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.statusCode).equals(200);
     }));
 }))();

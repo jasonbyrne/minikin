@@ -32,6 +32,15 @@ import { Server, Response } from "minikin";
 })();
 ```
 
+Route callbacks also support async/await seamlessly.
+
+```javascript
+server.route("GET /yo", async (req) => {
+  const data = await goGetSomeData();
+  Response.fromString(data);
+});
+```
+
 Minikin can also handle URL path params out of the box:
 
 ```javascript
@@ -169,7 +178,23 @@ Alternately you can set headers like this
 
 ```javascript
 server.route("GET /hello", () =>
-  Response.fromString("Hey!").setHeader("X-Foo", "Bar")
+  Response.fromString("Hey!").addHeader("X-Foo", "Bar")
+);
+```
+
+If you want to add trailers, they work the same way as headers except are called `trailer`
+
+```javascript
+server.route("GET /hello", () =>
+  Response.fromString("Hi", {
+    trailers: [["X-Some-Trailer", "foobar"]],
+  })
+);
+
+// Or
+
+server.route("GET /bye", () =>
+  Response.fromString("See ya later").addTrailer("X-Foo", "Bar")
 );
 ```
 
@@ -177,7 +202,18 @@ Similarly you can set cookies on the response
 
 ```javascript
 server.route("GET /hello", () =>
-  Response.fromString("Hey!").setCookie("X-Foo", "Bar", { "Max-Age": 60 })
+  Response.fromString("Hey!").addCookie("X-Foo", "Bar", 60)
+);
+```
+
+The above sets the TTL (Max-Age) on the cookie to 60 seconds. Alternately, the third argument can accept an object allowing you to set any of the standard cookie options.
+
+```javascript
+server.route("GET /hello", () =>
+  Response.fromString("Hey!").addCookie("X-Foo", "Bar", {
+    "Max-Age": 60,
+    SameSite: true,
+  })
 );
 ```
 

@@ -1,13 +1,8 @@
 import * as http from "http";
 import * as https from "https";
-import { Response } from "./response";
 import { Request } from "./request";
-
-export type RouteCallback = (
-  req: Request
-) => Response | void | Promise<Response | void>;
-
-export type Handler = [string, string, RouteCallback[]];
+import { Response } from "./response";
+import { RouteCallback, Handler } from "./interfaces";
 
 const asyncFirstResponse = async (req: Request, arr: RouteCallback[]) => {
   let res: Response | null = null;
@@ -22,8 +17,8 @@ const asyncFirstResponse = async (req: Request, arr: RouteCallback[]) => {
 };
 
 export class Server {
-  private _server: http.Server | https.Server;
-  private _handlers: Handler[];
+  #server: http.Server | https.Server;
+  #handlers: Handler[];
 
   public static async listen(port: number, opts?: https.ServerOptions) {
     return new Server(opts)._listen(port);
@@ -32,10 +27,10 @@ export class Server {
   private constructor(secureOpts?: https.ServerOptions) {
     const listener = (req: http.IncomingMessage, res: http.ServerResponse) =>
       this._requestHandler(req, res);
-    this._server = secureOpts
+    this.#server = secureOpts
       ? https.createServer(secureOpts, listener)
       : http.createServer(listener);
-    this._handlers = [];
+    this.#handlers = [];
   }
 
   private async _parseRequest(req: http.IncomingMessage): Promise<Request> {
@@ -51,6 +46,7 @@ export class Server {
               body: Buffer.concat(chunks).toString(),
               url: req.url || "/",
               headers: req.headers,
+              trailers: req.trailers,
               method: req.method?.toUpperCase() || "GET",
               params: {},
             })
@@ -97,8 +93,8 @@ export class Server {
     myReq: Request,
     res: http.ServerResponse
   ): Promise<boolean> {
-    for (let i = 0; i < this._handlers.length; i++) {
-      const handler = this._handlers[i];
+    for (let i = 0; i < this.#handlers.length; i++) {
+      const handler = this.#handlers[i];
       const pathMatches = this._pathMatches(handler, myReq);
       const methodMathces = this._methodMatches(handler, myReq);
       if (methodMathces && pathMatches) {
@@ -137,15 +133,20 @@ export class Server {
   }
 
   private _sendResponse(res: http.ServerResponse, mr: Response) {
-    res.writeHead(mr.statusCode, mr.statusMessage, mr.headers).end(mr.content);
+    res
+      .writeHead(mr.statusCode, mr.statusMessage, mr.headers)
+      .write(mr.content, () => {
+        res.addTrailers(mr.trailers);
+        res.end();
+      });
   }
 
   private _listen(port: number): Promise<Server> {
-    if (this._server.listening) {
+    if (this.#server.listening) {
       throw new Error("HTTP Server is already listening.");
     }
     return new Promise((resolve, reject) => {
-      this._server
+      this.#server
         .listen({ port: port }, () => {
           resolve(this);
         })
@@ -158,17 +159,20 @@ export class Server {
   }
 
   public route(path: string, ...callbacks: RouteCallback[]): Server {
-    const arrPath = path.trim().split(" ");
+    const arrPath = (() => {
+      const arr = (path.trim() || "*").replace(/  +/g, " ").split(" ");
+      return arr.length > 1 ? arr : ["*", arr[0]];
+    })();
     const method = arrPath.length > 1 ? arrPath[0].toUpperCase() : "GET";
     const uri = arrPath[arrPath.length > 1 ? 1 : 0];
-    this._handlers.push([method, uri, callbacks]);
+    this.#handlers.push([method, uri, callbacks]);
     return this;
   }
 
   public async close(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this._server.listening
-        ? this._server.close((err) => {
+      this.#server.listening
+        ? this.#server.close((err) => {
             err ? reject(err) : resolve();
           })
         : resolve();

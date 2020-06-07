@@ -20,6 +20,11 @@ import { Server, Response } from "../../dist/index.js";
         message: `Hello to ${req.params.name} from Minikin!`,
       })
     )
+    .route("GET /trailers", (req) =>
+      Response.fromString("Hi", {
+        trailers: [["foo", "bar"]],
+      })
+    )
     .route("GET /cookie", (req) => Response.fromString(req.cookies.test))
     .route("GET /template", (req) =>
       Response.fromString("Hello, {{ name }}").render({ name: "Jason" })
@@ -116,5 +121,12 @@ import { Server, Response } from "../../dist/index.js";
     .next(async (context) => {
       context.assert(context.response.statusCode).equals(200);
       context.assert(context.response.body).equals("Hello, Jason");
+    });
+
+  suite
+    .scenario("Test Trailers", "resource")
+    .open("GET /trailers")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(200);
     });
 })();

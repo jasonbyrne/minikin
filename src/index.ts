@@ -1,5 +1,6 @@
 import { Request } from "./request";
-import { Response, Headers, OptionalParams } from "./response";
-import { Server, RouteCallback } from "./server";
+import { Response } from "./response";
+import { Server } from "./server";
+import { ResponseParams, Headers, RouteCallback } from "./interfaces";
 
-export { Server, Response, Request, RouteCallback, Headers, OptionalParams };
+export { Server, Response, Request, RouteCallback, Headers, ResponseParams };

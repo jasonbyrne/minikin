@@ -1,28 +1,19 @@
 import * as http from "http";
+import { iRequest, KeyValue } from "./interfaces";
 
-interface KeyValue {
-  [key: string]: string;
-}
+export class Request implements iRequest {
+  readonly method: string;
+  readonly url: string;
+  readonly headers: http.IncomingHttpHeaders;
+  readonly trailers: http.IncomingHttpHeaders;
+  readonly body: string;
+  readonly params: KeyValue;
 
-interface iRequestOpts {
-  method: string;
-  url: string;
-  headers: http.IncomingHttpHeaders;
-  body: string;
-  params: KeyValue;
-}
-
-export class Request implements iRequestOpts {
-  public method: string;
-  public url: string;
-  public headers: http.IncomingHttpHeaders;
-  public body: string;
-  public params: KeyValue;
-
-  constructor(opts: iRequestOpts) {
+  constructor(opts: iRequest) {
     this.method = opts.method;
     this.url = opts.url;
     this.headers = opts.headers;
+    this.trailers = opts.trailers;
     this.body = opts.body;
     this.params = opts.params;
   }
