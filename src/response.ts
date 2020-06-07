@@ -18,6 +18,13 @@ export class Response {
   #headers: Headers;
   #trailers: Headers;
 
+  static redirect(url: string, code: number = 302) {
+    return new Response("", {
+      statusCode: code,
+      headers: [["Location", url]],
+    });
+  }
+
   static fromTemplate(
     filePath: string,
     kv: TemplateKeyValues,
@@ -72,11 +79,11 @@ export class Response {
     });
   }
 
-  public get statusCode(): number {
+  public get code(): number {
     return this.#statusCode;
   }
 
-  public get statusMessage(): string {
+  public get message(): string {
     return this.#statusMessage || defaultStatusMessage[this.#statusCode] || "";
   }
 
@@ -121,9 +128,9 @@ export class Response {
     return this;
   }
 
-  public addCookie(key: string, value: string, params?: CookieParams): Response;
-  public addCookie(key: string, value: string, ttl: number): Response;
-  public addCookie(key: string, value: string, opt?: CookieParams | number) {
+  public cookie(key: string, value: string, params?: CookieParams): Response;
+  public cookie(key: string, value: string, ttl: number): Response;
+  public cookie(key: string, value: string, opt?: CookieParams | number) {
     const arrParams: string[] =
       typeof opt == "number"
         ? [`Max-Age=${opt}`]
@@ -137,12 +144,12 @@ export class Response {
     return this;
   }
 
-  public addHeader(key: string, value: string): Response {
+  public header(key: string, value: string): Response {
     this.#headers.push([key, value]);
     return this;
   }
 
-  public addTrailer(key: string, value: string): Response {
+  public trailer(key: string, value: string): Response {
     this.#trailers.push([key, value]);
     return this;
   }

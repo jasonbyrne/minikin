@@ -2,12 +2,12 @@ import * as http from "http";
 import { iRequest, KeyValue } from "./interfaces";
 
 export class Request implements iRequest {
-  readonly method: string;
-  readonly url: string;
-  readonly headers: http.IncomingHttpHeaders;
-  readonly trailers: http.IncomingHttpHeaders;
-  readonly body: string;
-  readonly params: KeyValue;
+  public method: string;
+  public url: string;
+  public headers: http.IncomingHttpHeaders;
+  public trailers: http.IncomingHttpHeaders;
+  public body: string;
+  public params: KeyValue;
 
   constructor(opts: iRequest) {
     this.method = opts.method;

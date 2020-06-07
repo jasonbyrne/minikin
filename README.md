@@ -134,6 +134,14 @@ Which would be the same as the example below. Remember: ALWAYS put the catch-all
 server.route("* *", () => Response.fromString("Catch all"));
 ```
 
+The final option for a universal catch-all is to totally skip the first argument.
+
+So as a universal catch-all you could just do:
+
+```javascript
+server.route(() => Response.fromString("Catch all"));
+```
+
 To read cookies:
 
 ```javascript
@@ -196,7 +204,7 @@ Alternately you can set headers like this
 
 ```javascript
 server.route("GET /hello", () =>
-  Response.fromString("Hey!").addHeader("X-Foo", "Bar")
+  Response.fromString("Hey!").header("X-Foo", "Bar")
 );
 ```
 
@@ -212,7 +220,7 @@ server.route("GET /hello", () =>
 // Or
 
 server.route("GET /bye", () =>
-  Response.fromString("See ya later").addTrailer("X-Foo", "Bar")
+  Response.fromString("See ya later").trailer("X-Foo", "Bar")
 );
 ```
 
@@ -220,7 +228,7 @@ Similarly you can set cookies on the response
 
 ```javascript
 server.route("GET /hello", () =>
-  Response.fromString("Hey!").addCookie("X-Foo", "Bar", 60)
+  Response.fromString("Hey!").cookie("X-Foo", "Bar", 60)
 );
 ```
 
@@ -228,7 +236,7 @@ The above sets the TTL (Max-Age) on the cookie to 60 seconds. Alternately, the t
 
 ```javascript
 server.route("GET /hello", () =>
-  Response.fromString("Hey!").addCookie("X-Foo", "Bar", {
+  Response.fromString("Hey!").cookie("X-Foo", "Bar", {
     "Max-Age": 60,
     SameSite: true,
   })
@@ -251,7 +259,7 @@ server.route("GET /hello/:name", () =>
 );
 ```
 
-Minkin also supports middleware, most often used as guards. You can chain callbacks.
+Minkin also supports middleware, most often used as guards. This allows you to chain callbacks inline on a specific route.
 
 ```javascript
 const requireAuthentication = (req: Request) => {
@@ -265,6 +273,37 @@ server.route("GET /protected", requireAuthentication, () =>
 );
 ```
 
+You can add global level middleware as well, which can act as plugins and pre-processors. The `use` method allows this, similar to other frameworks.
+
+```javascript
+server.use(parseJwtToken);
+server.use(processFormEncodedInput);
+server.use((req) => {
+  if (req.headers["User-Agent"].test(/roku|firetv|appletv/i)) {
+    req.isConnectedTv = true;
+  }
+});
+```
+
+These `use` handlers are exactly the same as any other route. They just are processed first. So this means you can return a response from, which will stop any further processing.
+
+```javascript
+server.use(() => Response.fromString("STOP!"));
+```
+
+You cal also pass a first argument to restrict it to certain methods and paths. This can allow it to act as a guard for many endpoints at once:
+
+```javascript
+server.use("PUT|POST|PATCH|DELETE /api/*", requireAuthentication);
+server.use("/images/*", preventLeeching);
+```
+
+You can also list out multiple use callbacks, like you can on a normal route. This is useful to enforce multiple rules or to run the request through multiple pre-processors.
+
+```javascript
+server.use("/admin/*", requireAuthentication, mustBeAdmin);
+```
+
 You can also chain routes if you prefer that syntax:
 
 ```javascript
@@ -276,4 +315,16 @@ server
   .route("GET /admin", () => Response.fromString("Forbidden", {
     statusCode: 403
   });
+```
+
+To do a redirect:
+
+```javascript
+server.route("GET /foo", () => Response.redirect("/bar"));
+```
+
+The default status code for a redirect is 302, but you can change that with the second argument:
+
+```javascript
+server.route("GET /foo", () => Response.redirect("/bar", 301));
 ```
