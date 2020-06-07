@@ -116,6 +116,24 @@ You can also do a wildcard method
 server.route("* /goodbye", () => Response.fromString("Cya"));
 ```
 
+If you do not set a method at all, it will be wildcard by default, which is equivalent to the last example.
+
+```javascript
+server.route("/goodbye", () => Response.fromString("Cya"));
+```
+
+So as a universal catch-all you could just do:
+
+```javascript
+server.route("*", () => Response.fromString("Catch all"));
+```
+
+Which would be the same as the example below. Remember: ALWAYS put the catch-all case LAST!
+
+```javascript
+server.route("* *", () => Response.fromString("Catch all"));
+```
+
 To read cookies:
 
 ```javascript
