@@ -1,5 +1,6 @@
 import fs = require("fs");
 import path = require("path");
+import * as http from "http";
 import { OutgoingHttpHeaders } from "http";
 import {
   TemplateKeyValues,
@@ -151,6 +152,16 @@ export class Response {
 
   public trailer(key: string, value: string): Response {
     this.#trailers.push([key, value]);
+    return this;
+  }
+
+  public send(res: http.ServerResponse) {
+    res
+      .writeHead(this.code, this.message, this.headers)
+      .write(this.content, () => {
+        res.addTrailers(this.trailers);
+        res.end();
+      });
     return this;
   }
 }

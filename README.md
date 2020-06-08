@@ -304,17 +304,18 @@ You can also list out multiple use callbacks, like you can on a normal route. Th
 server.use("/admin/*", requireAuthentication, mustBeAdmin);
 ```
 
-You can also chain routes if you prefer that syntax:
+You can also use the `routes` method to set multiple routes in an object form:
 
 ```javascript
-server
-  .route("GET /hello", () => Response.fromString("hello"))
-  .route("GET /hello/:name", (req) => Response.fromJson({
+server.routes({
+  "GET /hello": () => Response.fromString("hello")),
+  "GET /hello/:name": (req) => Response.fromJson({
     message: `Hello to ${req.params.name} from Minikin!`,
-  })
-  .route("GET /admin", () => Response.fromString("Forbidden", {
+  },
+  "GET /admin": () => Response.fromString("Forbidden", {
     statusCode: 403
-  });
+  }
+});
 ```
 
 To do a redirect:
@@ -327,4 +328,24 @@ The default status code for a redirect is 302, but you can change that with the 
 
 ```javascript
 server.route("GET /foo", () => Response.redirect("/bar", 301));
+```
+
+If you only want to use the routing of Minikin (and not the HTTP server part), you can instantiate a new router directly:
+
+```javascript
+import { Router } from "minikin";
+
+const router = new Router();
+```
+
+Then you can use the same routing methods above such as
+
+```javascript
+router.route("GET /hello", () => Response.fromString("hi"));
+```
+
+And you can triggler the request handling with the `handle` method:
+
+```javascript
+const response = await router.handle(req);
 ```

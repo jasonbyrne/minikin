@@ -1,29 +1,15 @@
 import * as http from "http";
 import { Request } from "./request";
 import { Response } from "./response";
-import { RouteCallback, Handler, iRouter } from "./interfaces";
-
-const asyncFirstResponse = async (req: Request, arr: RouteCallback[]) => {
-  let res: Response | null = null;
-  for (let i = 0; i < arr.length; i++) {
-    if (!res) {
-      res = (await arr[i](req)) || null;
-    }
-  }
-  return res === null
-    ? Response.fromString("No response", { statusCode: 500 })
-    : res;
-};
+import { RouteCallback, iRouter, Afterware } from "./interfaces";
+import { syncForEach } from "./util";
+import { Route } from "./route";
+import { Handler } from "./handler";
 
 export class Router implements iRouter {
   #prelims: Handler[] = [];
   #handlers: Handler[] = [];
-
-  public static create() {
-    return new Router();
-  }
-
-  private constructor() {}
+  #afters: Afterware[] = [];
 
   private async _parseRequest(req: http.IncomingMessage): Promise<Request> {
     return new Promise((resolve) => {
@@ -47,79 +33,25 @@ export class Router implements iRouter {
     });
   }
 
-  private _pathMatches(handler: Handler, req: Request) {
-    const regexPath =
-      handler[1] === "*"
-        ? new RegExp(".*")
-        : new RegExp(
-            "^" +
-              handler[1]
-                .replace(/\/:[A-Za-z]+/g, "/([^/]+)")
-                .replace(/\/\*/, "/.*") +
-              "$"
-          );
-    return req.url?.match(regexPath);
-  }
-
-  private _methodMatches(handler: Handler, req: Request) {
-    const methods = handler[0].split("|");
-    return methods.includes(req.method) || methods.includes("*");
-  }
-
-  private _parseParams(
-    handler: Handler,
-    pathMatches: RegExpMatchArray,
-    req: Request
-  ) {
-    const params = handler[1].match(/\/:([a-z]+)/gi)?.map((key) => {
-      return key.substr(2);
-    });
-    if (pathMatches.length > 1 && params && params.length > 0) {
-      params.forEach((key, i) => {
-        req.params[key] = pathMatches[i + 1];
-      });
-    }
-  }
-
-  private async _handle(req: Request): Promise<Response | false> {
+  private async _getResponse(req: Request): Promise<Response> {
     const handlers = [...this.#prelims, ...this.#handlers];
     for (let i = 0; i < handlers.length; i++) {
-      const handler = handlers[i];
-      const pathMatches = this._pathMatches(handler, req);
-      const methodMathces = this._methodMatches(handler, req);
-      if (methodMathces && pathMatches) {
-        this._parseParams(handler, pathMatches, req);
-        try {
-          const myResponse = await asyncFirstResponse(req, handler[2]);
-          return (
-            myResponse ||
-            Response.fromString("No content in response", { statusCode: 500 })
-          );
-        } catch (ex) {
-          return Response.fromString(`Unhandled exception: ${ex}`, {
-            statusCode: 500,
-          });
+      try {
+        const handler = handlers[i];
+        const response = await handler.handle(req);
+        if (response) {
+          return response;
         }
+      } catch (ex) {
+        return Response.fromString(`Unhandled exception: ${ex}`, {
+          statusCode: 500,
+        });
       }
     }
-    return false;
+    return Response.fromString("Not Found", { statusCode: 404 });
   }
 
-  private _parsePath(path: string) {
-    const arrPath = (() => {
-      const arr = (path.trim() || "*").replace(/  +/g, " ").split(" ");
-      return arr.length > 1 ? arr : ["*", arr[0]];
-    })();
-    return {
-      method: arrPath.length > 1 ? arrPath[0].toUpperCase() : "GET",
-      uri: arrPath[arrPath.length > 1 ? 1 : 0],
-    };
-  }
-
-  private _handleOverload(
-    a: string | RouteCallback,
-    b: RouteCallback[]
-  ): [string, string, RouteCallback[]] {
+  private _getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
     const path = typeof a == "string" ? a : "*";
     const callbacks =
       typeof a == "string"
@@ -128,27 +60,54 @@ export class Router implements iRouter {
             b.unshift(a);
             return b;
           })();
-    const { method, uri } = this._parsePath(path);
-    return [method, uri, callbacks];
+    return new Handler(new Route(path), callbacks);
+  }
+
+  private async _processAfters(response: Response, request: Request) {
+    await syncForEach(this.#afters, async (after: Afterware) => {
+      response = await after(response, request);
+    });
+    return response;
   }
 
   public use(path: string, ...callbacks: RouteCallback[]): iRouter;
   public use(...callbacks: RouteCallback[]): iRouter;
   public use(a: string | RouteCallback, ...b: RouteCallback[]): iRouter {
-    this.#prelims.push(this._handleOverload(a, b));
+    this.#prelims.push(this._getHandler(a, b));
     return this;
   }
 
-  public route(path: string, ...callbacks: RouteCallback[]): iRouter;
-  public route(...callbacks: RouteCallback[]): iRouter;
-  public route(a: string | RouteCallback, ...b: RouteCallback[]): iRouter {
-    this.#handlers.push(this._handleOverload(a, b));
+  public route(path: string, ...callbacks: RouteCallback[]): Handler;
+  public route(...callbacks: RouteCallback[]): Handler;
+  public route(a: string | RouteCallback, ...b: RouteCallback[]): Handler {
+    const handler = this._getHandler(a, b);
+    this.#handlers.push(handler);
+    return handler;
+  }
+
+  public routes(routes: {
+    [path: string]: RouteCallback[] | RouteCallback;
+  }): iRouter {
+    for (const path in routes) {
+      const cb = routes[path];
+      const callbacks = Array.isArray(cb) ? cb : [cb];
+      this.route.apply(this, [path, ...callbacks]);
+    }
     return this;
   }
 
-  public async handle(req: http.IncomingMessage) {
-    const myReq = await this._parseRequest(req);
-    const response = await this._handle(myReq);
-    return response || Response.fromString("Not Found", { statusCode: 404 });
+  public async handle(req: http.IncomingMessage, res?: http.ServerResponse) {
+    const request = await this._parseRequest(req);
+    const response = await this._getResponse(request);
+    this._processAfters(response, request);
+    if (res) {
+      response.send(res);
+    }
+    return response;
+  }
+
+  public afterAll(...callbacks: Afterware[]) {
+    callbacks.forEach((callback) => this.#afters.push(callback));
+    return this;
   }
 }

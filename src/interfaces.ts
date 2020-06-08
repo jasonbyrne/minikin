@@ -1,6 +1,7 @@
 import * as http from "http";
 import { Request } from "./request";
 import { Response } from "./response";
+import { Handler } from "./handler";
 
 export const commonFileTypes = {
   html: "text/html",
@@ -75,24 +76,21 @@ export type RouteCallback = (
   req: Request
 ) => Response | void | Promise<Response | void>;
 
-export type Handler = [string, string, RouteCallback[]];
+export type Afterware = (
+  response: Response,
+  request: Request
+) => Promise<Response>;
 
 export interface iRouter {
   use(path: string, ...callbacks: RouteCallback[]): iRouter;
   use(...callbacks: RouteCallback[]): iRouter;
-  route(path: string, ...callbacks: RouteCallback[]): iRouter;
-  route(...callbacks: RouteCallback[]): iRouter;
+  route(path: string, ...callbacks: RouteCallback[]): Handler;
+  route(...callbacks: RouteCallback[]): Handler;
+  routes(routes: { [path: string]: RouteCallback[] | RouteCallback }): iRouter;
   handle(req: http.IncomingMessage): Promise<Response>;
+  afterAll(...callbacks: Afterware[]): iRouter;
 }
 
-export interface iServer {
-  use(path: string, ...callbacks: RouteCallback[]): iServer;
-  use(...callbacks: RouteCallback[]): iServer;
-  route(path: string, ...callbacks: RouteCallback[]): iServer;
-  route(...callbacks: RouteCallback[]): iServer;
-  handle(
-    req: http.IncomingMessage,
-    res: http.ServerResponse
-  ): Promise<Response>;
+export interface iServer extends iRouter {
   close(): Promise<iServer>;
 }

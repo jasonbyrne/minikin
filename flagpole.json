@@ -28,6 +28,11 @@
       "id": "",
       "name": "smoke",
       "tags": []
+    },
+    "min": {
+      "id": "",
+      "name": "min",
+      "tags": []
     }
   }
 }

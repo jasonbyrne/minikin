@@ -4,8 +4,8 @@ import { Server, Response } from "../../dist/index.js";
 (async () => {
   const server = await Server.listen(8000);
 
-  server
-    .route("GET /hello", () =>
+  server.routes({
+    "GET /hello": () =>
       Response.fromJson(
         {
           message: "Hello from Minikin!",
@@ -13,42 +13,37 @@ import { Server, Response } from "../../dist/index.js";
         {
           headers: [["X-Test", "Hello"]],
         }
-      )
-    )
-    .route("GET /hello/:name", (req) =>
+      ),
+    "GET /hello/:name": (req) =>
       Response.fromJson({
         message: `Hello to ${req.params.name} from Minikin!`,
-      })
-    )
-    .route("GET /trailers", (req) =>
+      }),
+    "GET /trailers": () =>
       Response.fromString("Hi", {
         trailers: [["foo", "bar"]],
-      })
-    )
-    .route("GET /cookie", (req) => Response.fromString(req.cookies.test))
-    .route("GET /template", (req) =>
-      Response.fromString("Hello, {{ name }}").render({ name: "Jason" })
-    )
-    .route(
-      "GET /protected",
+      }),
+    "GET /cookie": (req) => Response.fromString(req.cookies.test),
+    "GET /template": () =>
+      Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
+    "GET /protected": [
       () => {},
       (req) => {
         if (!req.headers["Authorization"]) {
           return Response.fromString("foo", { statusCode: 401 });
         }
       },
-      () => Response.fromString("bar")
-    )
-    .route("GET *", () =>
+      () => Response.fromString("bar"),
+    ],
+    "GET *": () =>
       Response.fromJson(
         {
           message: "File not found",
         },
         { statusCode: 404 }
-      )
-    )
-    .route("PATCH|PUT *", () => Response.fromString("PATCH or PUT"))
-    .route("* *", () => Response.fromString("No match"));
+      ),
+    "PATCH|PUT *": () => Response.fromString("PATCH or PUT"),
+    "* *": () => Response.fromString("No match"),
+  });
 
   const suite = flagpole("Basic Smoke Test of Site").base(
     "http://localhost:8000"
@@ -62,6 +57,7 @@ import { Server, Response } from "../../dist/index.js";
     .scenario("Hello", "json")
     .open("/hello")
     .next(async (context) => {
+      context.comment(context.response.body);
       const message = await context.exists("message");
       context.assert(message.$).equals("Hello from Minikin!");
       context.assert(context.response.header("X-Test")).equals("Hello");

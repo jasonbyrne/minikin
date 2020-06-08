@@ -13,30 +13,35 @@ const flagpole_1 = require("flagpole");
 const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.listen(8000);
-    server
-        .route("GET /hello", () => index_js_1.Response.fromJson({
-        message: "Hello from Minikin!",
-    }, {
-        headers: [["X-Test", "Hello"]],
-    }))
-        .route("GET /hello/:name", (req) => index_js_1.Response.fromJson({
-        message: `Hello to ${req.params.name} from Minikin!`,
-    }))
-        .route("GET /trailers", (req) => index_js_1.Response.fromString("Hi", {
-        trailers: [["foo", "bar"]],
-    }))
-        .route("GET /cookie", (req) => index_js_1.Response.fromString(req.cookies.test))
-        .route("GET /template", (req) => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }))
-        .route("GET /protected", () => { }, (req) => {
-        if (!req.headers["Authorization"]) {
-            return index_js_1.Response.fromString("foo", { statusCode: 401 });
-        }
-    }, () => index_js_1.Response.fromString("bar"))
-        .route("GET *", () => index_js_1.Response.fromJson({
-        message: "File not found",
-    }, { statusCode: 404 }))
-        .route("PATCH|PUT *", () => index_js_1.Response.fromString("PATCH or PUT"))
-        .route("* *", () => index_js_1.Response.fromString("No match"));
+    server.routes({
+        "GET /hello": () => index_js_1.Response.fromJson({
+            message: "Hello from Minikin!",
+        }, {
+            headers: [["X-Test", "Hello"]],
+        }),
+        "GET /hello/:name": (req) => index_js_1.Response.fromJson({
+            message: `Hello to ${req.params.name} from Minikin!`,
+        }),
+        "GET /trailers": () => index_js_1.Response.fromString("Hi", {
+            trailers: [["foo", "bar"]],
+        }),
+        "GET /cookie": (req) => index_js_1.Response.fromString(req.cookies.test),
+        "GET /template": () => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
+        "GET /protected": [
+            () => { },
+            (req) => {
+                if (!req.headers["Authorization"]) {
+                    return index_js_1.Response.fromString("foo", { statusCode: 401 });
+                }
+            },
+            () => index_js_1.Response.fromString("bar"),
+        ],
+        "GET *": () => index_js_1.Response.fromJson({
+            message: "File not found",
+        }, { statusCode: 404 }),
+        "PATCH|PUT *": () => index_js_1.Response.fromString("PATCH or PUT"),
+        "* *": () => index_js_1.Response.fromString("No match"),
+    });
     const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();
@@ -45,6 +50,7 @@ const index_js_1 = require("../../dist/index.js");
         .scenario("Hello", "json")
         .open("/hello")
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.comment(context.response.body);
         const message = yield context.exists("message");
         context.assert(message.$).equals("Hello from Minikin!");
         context.assert(context.response.header("X-Test")).equals("Hello");
