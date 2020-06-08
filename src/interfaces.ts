@@ -76,3 +76,23 @@ export type RouteCallback = (
 ) => Response | void | Promise<Response | void>;
 
 export type Handler = [string, string, RouteCallback[]];
+
+export interface iRouter {
+  use(path: string, ...callbacks: RouteCallback[]): iRouter;
+  use(...callbacks: RouteCallback[]): iRouter;
+  route(path: string, ...callbacks: RouteCallback[]): iRouter;
+  route(...callbacks: RouteCallback[]): iRouter;
+  handle(req: http.IncomingMessage): Promise<Response>;
+}
+
+export interface iServer {
+  use(path: string, ...callbacks: RouteCallback[]): iServer;
+  use(...callbacks: RouteCallback[]): iServer;
+  route(path: string, ...callbacks: RouteCallback[]): iServer;
+  route(...callbacks: RouteCallback[]): iServer;
+  handle(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ): Promise<Response>;
+  close(): Promise<iServer>;
+}
