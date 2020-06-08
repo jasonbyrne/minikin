@@ -348,3 +348,38 @@ And you can triggler the request handling with the `handle` method:
 ```javascript
 const response = await router.handle(req);
 ```
+
+On a given route (on both `Router` or `Server`), you can call the `after` method to run logic on the corresponding response. This allows you to modify the response before it gets sent back to the user.
+
+```javascript
+router
+  .route("GET /hello", () => Response.fromString("hi"))
+  .after((res) => {
+    res.content = "bye";
+  });
+```
+
+Similarly if you want to run a modifier on the response of every end point, you can do so with the `afterAll` method of both the `Server` and `Router` objects.
+
+```javascript
+router.afterAll((res) => {
+  res.header("X-Some-Header", "value");
+});
+```
+
+Just like you can with `use`/`beforeAll` and `route`, you can add in a path as the first argument to `afterAll` to only run it on matching paths.
+
+```javascript
+router.afterAll("GET /api/*", (res) => {
+  // Allow CORS on API endpoints
+  res.header("Access-Control-Allow-Origin", "*");
+});
+```
+
+And potentially, you could completely replace a response by returning it.
+
+```javascript
+router.afterAll("GET /replaceMe", (res) => {
+  return Response.fromString("some new response");
+});
+```

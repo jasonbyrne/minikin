@@ -4,6 +4,7 @@ import { Server } from "./server";
 import { Router } from "./router";
 import { Handler } from "./handler";
 import { Route } from "./route";
+import { Afterware } from "./afterware";
 import {
   ResponseParams,
   Headers,
@@ -22,4 +23,5 @@ export {
   CookieParams,
   Route,
   Handler,
+  Afterware,
 };
