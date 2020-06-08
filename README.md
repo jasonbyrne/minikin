@@ -2,7 +2,6 @@
 
 ![Version](https://badgen.net/npm/v/minikin)
 ![Minified](https://badgen.net/bundlephobia/min/minikin)
-![Minzipped](https://badgen.net/bundlephobia/minzip/minikin)
 
 SMALL BUT MIGHTY!
 
@@ -273,7 +272,7 @@ server.route("GET /protected", requireAuthentication, () =>
 );
 ```
 
-You can add global level middleware as well, which can act as plugins and pre-processors. The `use` method allows this, similar to other frameworks.
+You can add global level middleware as well, which can act as plugins and pre-processors. The `use` method allows this, similar to other frameworks. There is an alias for this called `beforeAll`, which describes better what it does (runs before the normal routes). However, `use` is the standard with other frameworks and so more familiar to developers.
 
 ```javascript
 server.use(parseJwtToken);

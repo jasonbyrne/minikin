@@ -13,8 +13,21 @@ const flagpole_1 = require("flagpole");
 const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.listen(8000);
-    server.route("GET /hello", () => index_js_1.Response.fromString("test"));
+    server.afterAll((res) => __awaiter(void 0, void 0, void 0, function* () {
+        res.header("X-Flagpole", "1");
+    }));
+    server
+        .route("GET /hello", () => index_js_1.Response.fromString("test"))
+        .after((res) => __awaiter(void 0, void 0, void 0, function* () {
+        res.content = "foo";
+        res.header("foo", "bar");
+    }));
     server.route("GET /json", () => index_js_1.Response.fromJson({ message: "test" }));
+    server
+        .route("GET /replace", () => index_js_1.Response.fromString("one thing"))
+        .after(() => {
+        return index_js_1.Response.fromString("another");
+    });
     const suite = flagpole_1.default("Minimal repro").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();
@@ -23,12 +36,20 @@ const index_js_1 = require("../../dist/index.js");
         .scenario("Hello", "resource")
         .open("/hello")
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
-        context.assert(context.response.body).equals("test");
+        context.assert(context.response.body).equals("foo");
+        context.assert(context.response.header("foo")).equals("bar");
+        context.assert(context.response.header("X-Flagpole")).equals("1");
     }));
     suite
         .scenario("JSON", "json")
         .open("/json")
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.jsonBody.$.message).equals("test");
+    }));
+    suite
+        .scenario("If it's not one thing, it's another", "resource")
+        .open("/replace")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.body).equals("another");
     }));
 }))();

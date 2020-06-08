@@ -1,9 +1,8 @@
 import * as http from "http";
 import * as https from "https";
 import { Router } from "./router";
-import { iServer } from "./interfaces";
 
-export class Server extends Router implements iServer {
+export class Server extends Router {
   #server: http.Server | https.Server;
 
   public static async listen(port: number, opts?: https.ServerOptions) {
@@ -36,7 +35,7 @@ export class Server extends Router implements iServer {
     });
   }
 
-  public async close(): Promise<iServer> {
+  public close(): Promise<Server> {
     return new Promise((resolve, reject) => {
       this.#server.listening
         ? this.#server.close((err) => (err ? reject(err) : resolve()))

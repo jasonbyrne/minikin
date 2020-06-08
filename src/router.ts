@@ -1,10 +1,10 @@
 import * as http from "http";
 import { Request } from "./request";
 import { Response } from "./response";
-import { RouteCallback, iRouter, Afterware } from "./interfaces";
+import { RouteCallback, AfterCallback, iRouter } from "./interfaces";
 import { syncForEach } from "./util";
-import { Route } from "./route";
 import { Handler } from "./handler";
+import { Afterware } from "./afterware";
 
 export class Router implements iRouter {
   #prelims: Handler[] = [];
@@ -51,7 +51,7 @@ export class Router implements iRouter {
     return Response.fromString("Not Found", { statusCode: 404 });
   }
 
-  private _getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
+  private _overloaded(a: string | Function, b: Function[]) {
     const path = typeof a == "string" ? a : "*";
     const callbacks =
       typeof a == "string"
@@ -60,16 +60,30 @@ export class Router implements iRouter {
             b.unshift(a);
             return b;
           })();
-    return new Handler(new Route(path), callbacks);
+    return { path: path, callbacks: callbacks };
+  }
+
+  private _getAfterware(
+    a: string | AfterCallback,
+    b: AfterCallback[]
+  ): Afterware {
+    const { path, callbacks } = this._overloaded(a, b);
+    return new Afterware(path, callbacks as AfterCallback[]);
+  }
+
+  private _getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
+    const { path, callbacks } = this._overloaded(a, b);
+    return new Handler(path, callbacks as RouteCallback[]);
   }
 
   private async _processAfters(response: Response, request: Request) {
     await syncForEach(this.#afters, async (after: Afterware) => {
-      response = await after(response, request);
+      response = await after.execute(response, request);
     });
     return response;
   }
 
+  public beforeAll = this.use;
   public use(path: string, ...callbacks: RouteCallback[]): iRouter;
   public use(...callbacks: RouteCallback[]): iRouter;
   public use(a: string | RouteCallback, ...b: RouteCallback[]): iRouter {
@@ -96,18 +110,22 @@ export class Router implements iRouter {
     return this;
   }
 
+  public afterAll(path: string, ...callbacks: AfterCallback[]): iRouter;
+  public afterAll(...callbacks: AfterCallback[]): iRouter;
+  public afterAll(a: string | AfterCallback, ...b: AfterCallback[]): iRouter {
+    this.#afters.push(this._getAfterware(a, b));
+    return this;
+  }
+
   public async handle(req: http.IncomingMessage, res?: http.ServerResponse) {
     const request = await this._parseRequest(req);
-    const response = await this._getResponse(request);
-    this._processAfters(response, request);
+    const response = await this._processAfters(
+      await this._getResponse(request),
+      request
+    );
     if (res) {
       response.send(res);
     }
     return response;
-  }
-
-  public afterAll(...callbacks: Afterware[]) {
-    callbacks.forEach((callback) => this.#afters.push(callback));
-    return this;
   }
 }

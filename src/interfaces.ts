@@ -76,10 +76,10 @@ export type RouteCallback = (
   req: Request
 ) => Response | void | Promise<Response | void>;
 
-export type Afterware = (
+export type AfterCallback = (
   response: Response,
   request: Request
-) => Promise<Response>;
+) => void | Response | Promise<void | Response>;
 
 export interface iRouter {
   use(path: string, ...callbacks: RouteCallback[]): iRouter;
@@ -88,9 +88,6 @@ export interface iRouter {
   route(...callbacks: RouteCallback[]): Handler;
   routes(routes: { [path: string]: RouteCallback[] | RouteCallback }): iRouter;
   handle(req: http.IncomingMessage): Promise<Response>;
-  afterAll(...callbacks: Afterware[]): iRouter;
-}
-
-export interface iServer extends iRouter {
-  close(): Promise<iServer>;
+  afterAll(path: string, ...callbacks: AfterCallback[]): iRouter;
+  afterAll(...callbacks: AfterCallback[]): iRouter;
 }

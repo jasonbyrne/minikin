@@ -84,12 +84,24 @@ export class Response {
     return this.#statusCode;
   }
 
+  public set code(value: number) {
+    this.#statusCode = value;
+  }
+
   public get message(): string {
     return this.#statusMessage || defaultStatusMessage[this.#statusCode] || "";
   }
 
+  public set message(value: string) {
+    this.#statusMessage = value;
+  }
+
   public get content(): string | Buffer {
     return this.#content;
+  }
+
+  public set content(value: string | Buffer) {
+    this.#content = value;
   }
 
   public get trailers(): Headers {
