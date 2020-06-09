@@ -334,9 +334,7 @@ If you only want to use the routing of Minikin (and not the HTTP server part), y
 ```javascript
 import minikin from "minikin";
 
-(async () => {
-  const router = await minikin.router();
-})();
+const router = minikin.router();
 ```
 
 Then you can use the same routing methods above such as

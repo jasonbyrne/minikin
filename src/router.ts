@@ -11,7 +11,7 @@ export class Router implements iRouter {
   #handlers: Handler[] = [];
   #afters: Afterware[] = [];
 
-  public static async create() {
+  public static create() {
     return new Router();
   }
 
