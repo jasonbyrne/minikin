@@ -63,13 +63,15 @@ export interface KeyValue {
   [key: string]: string;
 }
 
-export interface iRequest {
+export interface iRequestOpts {
   method: string;
   url: string;
   headers: http.IncomingHttpHeaders;
   trailers: http.IncomingHttpHeaders;
   body: string;
   params: KeyValue;
+  query?: KeyValue;
+  json?: any;
 }
 
 export type RouteCallback = (

@@ -36,10 +36,12 @@ const index_js_1 = require("../../dist/index.js");
             },
             () => index_js_1.Response.fromString("bar"),
         ],
+        "POST /json": (req) => index_js_1.Response.fromString(req.json.message),
+        "GET /query": (req) => index_js_1.Response.fromJson({ message: req.query.message }),
+        "PATCH|PUT *": () => index_js_1.Response.fromString("PATCH or PUT"),
         "GET *": () => index_js_1.Response.fromJson({
             message: "File not found",
         }, { statusCode: 404 }),
-        "PATCH|PUT *": () => index_js_1.Response.fromString("PATCH or PUT"),
         "* *": () => index_js_1.Response.fromString("No match"),
     });
     const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");
@@ -110,4 +112,19 @@ const index_js_1 = require("../../dist/index.js");
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.statusCode).equals(200);
     }));
+    suite
+        .scenario("Test POSTing JSON body", "resource")
+        .setJsonBody({
+        message: "foo",
+    })
+        .open("POST /json")
+        .next((context) => {
+        context.assert(context.response.body).equals("foo");
+    });
+    suite
+        .scenario("Test Query String Parsing", "resource")
+        .open("GET /query?message=bar")
+        .next((context) => {
+        context.assert(context.response.jsonBody.$.message).equals("bar");
+    });
 }))();

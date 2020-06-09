@@ -30,7 +30,10 @@ export class Route {
   }
 
   private _pathMatches(req: Request) {
-    return req.url?.match(this.regexPath);
+    const url = req.url.includes("?")
+      ? req.url.substr(0, req.url.indexOf("?"))
+      : req.url;
+    return url.match(this.regexPath);
   }
 
   private _methodMatches(req: Request) {

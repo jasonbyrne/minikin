@@ -1,21 +1,25 @@
 import * as http from "http";
-import { iRequest, KeyValue } from "./interfaces";
+import { iRequestOpts, KeyValue } from "./interfaces";
 
-export class Request implements iRequest {
+export class Request {
   public method: string;
   public url: string;
   public headers: http.IncomingHttpHeaders;
   public trailers: http.IncomingHttpHeaders;
   public body: string;
+  public json: any;
   public params: KeyValue;
+  public query: KeyValue;
 
-  constructor(opts: iRequest) {
+  constructor(opts: iRequestOpts) {
     this.method = opts.method;
     this.url = opts.url;
     this.headers = opts.headers;
     this.trailers = opts.trailers;
     this.body = opts.body;
     this.params = opts.params;
+    this.json = typeof opts.json == "undefined" ? null : opts.json;
+    this.query = opts.query || {};
   }
 
   public get cookies(): KeyValue {

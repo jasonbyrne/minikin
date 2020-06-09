@@ -1,7 +1,12 @@
 import * as http from "http";
 import { Request } from "./request";
 import { Response } from "./response";
-import { RouteCallback, AfterCallback, iRouter } from "./interfaces";
+import {
+  RouteCallback,
+  AfterCallback,
+  iRouter,
+  iRequestOpts,
+} from "./interfaces";
 import { syncForEach } from "./util";
 import { Handler } from "./handler";
 import { Afterware } from "./afterware";
@@ -23,16 +28,29 @@ export class Router implements iRouter {
           chunks.push(chunk);
         })
         .on("end", () => {
-          resolve(
-            new Request({
-              body: Buffer.concat(chunks).toString(),
-              url: req.url || "/",
-              headers: req.headers,
-              trailers: req.trailers,
-              method: req.method?.toUpperCase() || "GET",
-              params: {},
-            })
-          );
+          const opts: iRequestOpts = {
+            body: Buffer.concat(chunks).toString(),
+            url: req.url || "/",
+            headers: req.headers,
+            trailers: req.trailers,
+            method: req.method?.toUpperCase() || "GET",
+            params: {},
+          };
+          if (req.headers["content-type"] == "application/json") {
+            try {
+              opts.json = JSON.parse(opts.body);
+            } catch (ex) {}
+          }
+          if (opts.url.includes("?")) {
+            const query = new URLSearchParams(
+              opts.url.substr(opts.url.indexOf("?"))
+            );
+            opts.query = {};
+            for (var qs of query.entries()) {
+              opts.query[qs[0]] = qs[1];
+            }
+          }
+          resolve(new Request(opts));
         });
     });
   }

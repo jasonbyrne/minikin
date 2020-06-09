@@ -34,6 +34,9 @@ import { Server, Response } from "../../dist/index.js";
       },
       () => Response.fromString("bar"),
     ],
+    "POST /json": (req) => Response.fromString(req.json.message),
+    "GET /query": (req) => Response.fromJson({ message: req.query.message }),
+    "PATCH|PUT *": () => Response.fromString("PATCH or PUT"),
     "GET *": () =>
       Response.fromJson(
         {
@@ -41,7 +44,6 @@ import { Server, Response } from "../../dist/index.js";
         },
         { statusCode: 404 }
       ),
-    "PATCH|PUT *": () => Response.fromString("PATCH or PUT"),
     "* *": () => Response.fromString("No match"),
   });
 
@@ -124,5 +126,22 @@ import { Server, Response } from "../../dist/index.js";
     .open("GET /trailers")
     .next(async (context) => {
       context.assert(context.response.statusCode).equals(200);
+    });
+
+  suite
+    .scenario("Test POSTing JSON body", "resource")
+    .setJsonBody({
+      message: "foo",
+    })
+    .open("POST /json")
+    .next((context) => {
+      context.assert(context.response.body).equals("foo");
+    });
+
+  suite
+    .scenario("Test Query String Parsing", "resource")
+    .open("GET /query?message=bar")
+    .next((context) => {
+      context.assert(context.response.jsonBody.$.message).equals("bar");
     });
 })();
