@@ -1,4 +1,4 @@
-# Minikin
+![alt Minikin | Small but mighty typescript server + router](https://github.com/jasonbyrne/minikin/blob/master/minikin.png?raw=true)
 
 ![Version](https://badgen.net/npm/v/minikin)
 ![Minified](https://badgen.net/bundlephobia/min/minikin)
