@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const flagpole_1 = require("flagpole");
 const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
-    const server = yield index_js_1.Server.listen(8000);
+    const server = yield index_js_1.default.server(8000);
     server.afterAll((res) => __awaiter(void 0, void 0, void 0, function* () {
         res.header("X-Flagpole", "1");
     }));

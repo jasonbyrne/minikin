@@ -18,10 +18,10 @@ npm i minikin
 Then start using it:
 
 ```javascript
-import { Server, Response } from "minikin";
+import minikin, { Response } from "minikin";
 
 (async () => {
-  const server = await Server.listen(8000);
+  const server = await minikin.server(8000);
 
   server.route("GET /hello", () =>
     Response.fromJson({
@@ -64,7 +64,7 @@ server.route("POST /person", (req) => {
 If you want to do HTTPS, pass in your certificate information as the segment argument
 
 ```javascript
-const server = await Server.listen(8000, {
+const server = await minikin.server(8000, {
   pfx: fs.readFileSync("test/fixtures/test_cert.pfx"),
   passphrase: "sample",
 });
@@ -329,12 +329,14 @@ The default status code for a redirect is 302, but you can change that with the 
 server.route("GET /foo", () => Response.redirect("/bar", 301));
 ```
 
-If you only want to use the routing of Minikin (and not the HTTP server part), you can instantiate a new router directly:
+If you only want to use the routing of Minikin (and not the HTTP server part), you can instantiate a `router` instead of `server`:
 
 ```javascript
-import { Router } from "minikin";
+import minikin from "minikin";
 
-const router = new Router();
+(async () => {
+  const router = await minikin.router();
+})();
 ```
 
 Then you can use the same routing methods above such as

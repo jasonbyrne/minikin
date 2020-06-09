@@ -11,6 +11,10 @@ export class Router implements iRouter {
   #handlers: Handler[] = [];
   #afters: Afterware[] = [];
 
+  public static async create() {
+    return new Router();
+  }
+
   private async _parseRequest(req: http.IncomingMessage): Promise<Request> {
     return new Promise((resolve) => {
       const chunks: any[] = [];

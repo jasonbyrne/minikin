@@ -25,3 +25,8 @@ export {
   Handler,
   Afterware,
 };
+
+export default class {
+  static server = Server.listen;
+  static router = Router.create;
+}
