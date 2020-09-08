@@ -5,11 +5,20 @@ import Port from "./port";
 
 export class Server extends Router {
   #server: http.Server | https.Server;
+  #port: number | null = null;
 
+  public static async listen(): Promise<Server>;
   public static async listen(
-    port: number | null = null,
+    portNumber: number,
     opts?: https.ServerOptions
+  ): Promise<Server>;
+  public static async listen(opts: https.ServerOptions): Promise<Server>;
+  public static async listen(
+    a?: number | https.ServerOptions,
+    b?: https.ServerOptions
   ) {
+    let port = typeof a == "number" ? a : null;
+    const opts = typeof a == "number" ? b : a;
     if (port === null) {
       port = await Port.next();
       if (!port) throw "No available port found.";
@@ -17,6 +26,10 @@ export class Server extends Router {
       await Port.check(port);
     }
     return new Server(opts)._listen(port);
+  }
+
+  public get port(): number | null {
+    return this.#port;
   }
 
   private constructor(secureOpts?: https.ServerOptions) {
@@ -35,6 +48,7 @@ export class Server extends Router {
     return new Promise((resolve, reject) => {
       this.#server
         .listen({ port: port }, () => {
+          this.#port = port;
           resolve(this);
         })
         .on("error", (err: string) => {

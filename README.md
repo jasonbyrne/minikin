@@ -31,6 +31,13 @@ import minikin, { Response } from "minikin";
 })();
 ```
 
+If you would like Minikin to pick an available port on its own, skip that parameter:
+
+```javascript
+const server = await minikin.server();
+const port = server.port;
+```
+
 Route callbacks also support async/await seamlessly.
 
 ```javascript
