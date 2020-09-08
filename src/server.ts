@@ -1,11 +1,21 @@
 import * as http from "http";
 import * as https from "https";
 import { Router } from "./router";
+import Port from "./port";
 
 export class Server extends Router {
   #server: http.Server | https.Server;
 
-  public static async listen(port: number, opts?: https.ServerOptions) {
+  public static async listen(
+    port: number | null = null,
+    opts?: https.ServerOptions
+  ) {
+    if (port === null) {
+      port = await Port.next();
+      if (!port) throw "No available port found.";
+    } else {
+      await Port.check(port);
+    }
     return new Server(opts)._listen(port);
   }
 
