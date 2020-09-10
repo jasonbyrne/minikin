@@ -7,9 +7,8 @@ export class Server extends Router {
   #server: http.Server | https.Server;
   #port: number | null = null;
 
-  public static async listen(): Promise<Server>;
   public static async listen(
-    portNumber: number,
+    portNumber?: number,
     opts?: https.ServerOptions
   ): Promise<Server>;
   public static async listen(opts: https.ServerOptions): Promise<Server>;
