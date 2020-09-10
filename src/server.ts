@@ -27,8 +27,8 @@ export class Server extends Router {
     return new Server(opts)._listen(port);
   }
 
-  public get port(): number | null {
-    return this.#port;
+  public get port(): number {
+    return this.#port || 0;
   }
 
   private constructor(secureOpts?: https.ServerOptions) {
