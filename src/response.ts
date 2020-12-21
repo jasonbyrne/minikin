@@ -43,7 +43,13 @@ export class Response {
     opts?: ResponseParams,
     encoding: Encoding = "utf8"
   ) {
-    const fullPath = path.join(process.cwd(), filePath);
+    const fullPath = (() => {
+      try {
+        return fs.realpathSync(filePath);
+      } catch (ex) {
+        return path.join(process.cwd(), filePath);
+      }
+    })();
     const extension = path.extname(fullPath).substr(1);
     if (fs.existsSync(fullPath)) {
       const content = fs.readFileSync(fullPath, encoding);

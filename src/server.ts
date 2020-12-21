@@ -61,7 +61,7 @@ export class Server extends Router {
   public close(): Promise<Server> {
     return new Promise((resolve, reject) => {
       this.#server.listening
-        ? this.#server.close((err) => (err ? reject(err) : resolve()))
+        ? this.#server.close((err) => (err ? reject(err) : resolve(this)))
         : resolve(this);
     });
   }
