@@ -12,9 +12,9 @@ import { Handler } from "./handler";
 import { Afterware } from "./afterware";
 
 export class Router implements iRouter {
-  #prelims: Handler[] = [];
-  #handlers: Handler[] = [];
-  #afters: Afterware[] = [];
+  _prelims: Handler[] = [];
+  _handlers: Handler[] = [];
+  _afters: Afterware[] = [];
 
   public static create() {
     return new Router();
@@ -56,7 +56,7 @@ export class Router implements iRouter {
   }
 
   private async _getResponse(req: Request): Promise<Response> {
-    const handlers = [...this.#prelims, ...this.#handlers];
+    const handlers = [...this._prelims, ...this._handlers];
     for (let i = 0; i < handlers.length; i++) {
       try {
         const handler = handlers[i];
@@ -99,7 +99,7 @@ export class Router implements iRouter {
   }
 
   private async _processAfters(response: Response, request: Request) {
-    await syncForEach(this.#afters, async (after: Afterware) => {
+    await syncForEach(this._afters, async (after: Afterware) => {
       response = await after.execute(response, request);
     });
     return response;
@@ -109,7 +109,7 @@ export class Router implements iRouter {
   public use(path: string, ...callbacks: RouteCallback[]): iRouter;
   public use(...callbacks: RouteCallback[]): iRouter;
   public use(a: string | RouteCallback, ...b: RouteCallback[]): iRouter {
-    this.#prelims.push(this._getHandler(a, b));
+    this._prelims.push(this._getHandler(a, b));
     return this;
   }
 
@@ -117,7 +117,7 @@ export class Router implements iRouter {
   public route(...callbacks: RouteCallback[]): Handler;
   public route(a: string | RouteCallback, ...b: RouteCallback[]): Handler {
     const handler = this._getHandler(a, b);
-    this.#handlers.push(handler);
+    this._handlers.push(handler);
     return handler;
   }
 
@@ -135,7 +135,7 @@ export class Router implements iRouter {
   public afterAll(path: string, ...callbacks: AfterCallback[]): iRouter;
   public afterAll(...callbacks: AfterCallback[]): iRouter;
   public afterAll(a: string | AfterCallback, ...b: AfterCallback[]): iRouter {
-    this.#afters.push(this._getAfterware(a, b));
+    this._afters.push(this._getAfterware(a, b));
     return this;
   }
 

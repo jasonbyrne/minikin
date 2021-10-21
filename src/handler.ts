@@ -5,12 +5,10 @@ import { RouteCallback, AfterCallback } from "./interfaces";
 import { firstResponse, syncForEach } from "./util";
 
 export class Handler extends Route {
-  #callbacks: RouteCallback[];
-  #afters: AfterCallback[] = [];
+  private _afters: AfterCallback[] = [];
 
-  constructor(path: string, callbacks: RouteCallback[]) {
+  constructor(path: string, private _callbacks: RouteCallback[]) {
     super(path);
-    this.#callbacks = callbacks;
   }
 
   private _parseParams(pathMatches: RegExpMatchArray, req: Request) {
@@ -25,7 +23,7 @@ export class Handler extends Route {
   }
 
   private async _processAfters(response: Response, request: Request) {
-    await syncForEach(this.#afters, async (after: AfterCallback) => {
+    await syncForEach(this._afters, async (after: AfterCallback) => {
       response = (await after(response, request)) || response;
     });
     return response;
@@ -35,7 +33,7 @@ export class Handler extends Route {
     const matches = this.matches(req);
     if (matches) {
       this._parseParams(matches, req);
-      const myResponse = await firstResponse(req, this.#callbacks);
+      const myResponse = await firstResponse(req, this._callbacks);
       return this._processAfters(
         myResponse ||
           Response.fromString("No content in response", { statusCode: 500 }),
@@ -46,7 +44,7 @@ export class Handler extends Route {
   }
 
   public after(...callbacks: AfterCallback[]) {
-    callbacks.forEach((callback) => this.#afters.push(callback));
+    callbacks.forEach((callback) => this._afters.push(callback));
     return this;
   }
 }

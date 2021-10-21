@@ -23,7 +23,7 @@ export class Request {
   }
 
   public get cookies(): KeyValue {
-    const cookieString = this.headers.cookie || "";
+    const cookieString: string = this.headers.cookie || "";
     const cookies: KeyValue = {};
     cookieString.split("; ").forEach((cookie) => {
       const c = cookie.split("=");
