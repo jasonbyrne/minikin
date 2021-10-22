@@ -4,8 +4,8 @@ import { Router } from "./router";
 import Port from "./port";
 
 export class Server extends Router {
-  _server: http.Server | https.Server;
-  _port: number | null = null;
+  private _server: http.Server | https.Server;
+  private _port: number | null = null;
 
   public static async listen(
     portNumber?: number,

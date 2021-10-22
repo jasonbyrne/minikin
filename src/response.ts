@@ -13,11 +13,11 @@ import {
 } from "./interfaces";
 
 export class Response {
-  _content: string | Buffer;
-  _statusCode: number;
-  _statusMessage: string;
-  _headers: Headers;
-  _trailers: Headers;
+  private _content: string | Buffer;
+  private _statusCode: number;
+  private _statusMessage: string;
+  private _headers: Headers;
+  private _trailers: Headers;
 
   static redirect(url: string, code: number = 302) {
     return new Response("", {
