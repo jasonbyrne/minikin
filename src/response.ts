@@ -13,11 +13,11 @@ import {
 } from "./interfaces";
 
 export class Response {
-  #content: string | Buffer;
-  #statusCode: number;
-  #statusMessage: string;
-  #headers: Headers;
-  #trailers: Headers;
+  private _content: string | Buffer;
+  private _statusCode: number;
+  private _statusMessage: string;
+  private _headers: Headers;
+  private _trailers: Headers;
 
   static redirect(url: string, code: number = 302) {
     return new Response("", {
@@ -87,53 +87,53 @@ export class Response {
   }
 
   public get code(): number {
-    return this.#statusCode;
+    return this._statusCode;
   }
 
   public set code(value: number) {
-    this.#statusCode = value;
+    this._statusCode = value;
   }
 
   public get message(): string {
-    return this.#statusMessage || defaultStatusMessage[this.#statusCode] || "";
+    return this._statusMessage || defaultStatusMessage[this._statusCode] || "";
   }
 
   public set message(value: string) {
-    this.#statusMessage = value;
+    this._statusMessage = value;
   }
 
   public get content(): string | Buffer {
-    return this.#content;
+    return this._content;
   }
 
   public set content(value: string | Buffer) {
-    this.#content = value;
+    this._content = value;
   }
 
   public get trailers(): Headers {
-    return this.#trailers;
+    return this._trailers;
   }
 
   public get headers(): OutgoingHttpHeaders {
     const headers = {
-      "Content-Length": this.#content.length,
+      "Content-Length": this._content.length,
       Server: "minikin",
     };
-    this.#headers.forEach((header) => (headers[header[0]] = header[1]));
+    this._headers.forEach((header) => (headers[header[0]] = header[1]));
     return headers;
   }
 
   public constructor(content: string | Buffer, opts: ResponseParams) {
-    this.#content = content || "";
-    this.#statusCode = opts.statusCode || 200;
-    this.#statusMessage = opts.statusMessage || "";
-    this.#headers = opts.headers || [];
-    this.#trailers = opts.trailers || [];
+    this._content = content || "";
+    this._statusCode = opts.statusCode || 200;
+    this._statusMessage = opts.statusMessage || "";
+    this._headers = opts.headers || [];
+    this._trailers = opts.trailers || [];
   }
 
   private _replace(key: string, value: string) {
-    if (typeof this.#content === "string") {
-      this.#content = this.#content.replace(
+    if (typeof this._content === "string") {
+      this._content = this._content.replace(
         new RegExp(`{{ *${key} *}}`, "g"),
         value
       );
@@ -156,7 +156,7 @@ export class Response {
         : opt
         ? Object.keys(opt).map((key) => `${key}=${opt[key]}`)
         : [];
-    this.#headers.push([
+    this._headers.push([
       "Set-Cookie",
       `${key}=${value}; ${arrParams.join("; ")}`,
     ]);
@@ -164,12 +164,12 @@ export class Response {
   }
 
   public header(key: string, value: string): Response {
-    this.#headers.push([key, value]);
+    this._headers.push([key, value]);
     return this;
   }
 
   public trailer(key: string, value: string): Response {
-    this.#trailers.push([key, value]);
+    this._trailers.push([key, value]);
     return this;
   }
 

@@ -4,8 +4,8 @@ import { Router } from "./router";
 import Port from "./port";
 
 export class Server extends Router {
-  #server: http.Server | https.Server;
-  #port: number | null = null;
+  private _server: http.Server | https.Server;
+  private _port: number | null = null;
 
   public static async listen(
     portNumber?: number,
@@ -28,26 +28,26 @@ export class Server extends Router {
   }
 
   public get port(): number {
-    return this.#port || 0;
+    return this._port || 0;
   }
 
   private constructor(secureOpts?: https.ServerOptions) {
     super();
     const listener = (req: http.IncomingMessage, res: http.ServerResponse) =>
       this.handle(req, res);
-    this.#server = secureOpts
+    this._server = secureOpts
       ? https.createServer(secureOpts, listener)
       : http.createServer(listener);
   }
 
   private _listen(port: number): Promise<Server> {
-    if (this.#server.listening) {
+    if (this._server.listening) {
       throw new Error("HTTP Server is already listening.");
     }
     return new Promise((resolve, reject) => {
-      this.#server
+      this._server
         .listen({ port: port }, () => {
-          this.#port = port;
+          this._port = port;
           resolve(this);
         })
         .on("error", (err: string) => {
@@ -60,8 +60,8 @@ export class Server extends Router {
 
   public close(): Promise<Server> {
     return new Promise((resolve, reject) => {
-      this.#server.listening
-        ? this.#server.close((err) => (err ? reject(err) : resolve(this)))
+      this._server.listening
+        ? this._server.close((err) => (err ? reject(err) : resolve(this)))
         : resolve(this);
     });
   }
