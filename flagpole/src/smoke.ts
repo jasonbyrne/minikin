@@ -5,7 +5,7 @@ import { Server, Response } from "../../dist/index.js";
   const server = await Server.listen(8000);
 
   server.routes({
-    "GET /file": () => Response.fromFile("flagpole/fixtures/test.html"),
+    "GET /file": () => Response.fromFile("../flagpole/fixtures/test.html"),
     "GET /hello": () =>
       Response.fromJson(
         {

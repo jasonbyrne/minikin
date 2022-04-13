@@ -43,20 +43,26 @@ export class Response {
     opts?: ResponseParams,
     encoding: Encoding = "utf8"
   ) {
-    const fullPath = (() => {
-      const possiblePaths: string[] = [
-        path.join(__dirname, filePath),
-        path.join(process.cwd(), filePath),
-      ];
-      try {
-        possiblePaths.push(fs.realpathSync(filePath));
-      } catch (ex) {}
-      return possiblePaths.find((path) => fs.existsSync(path));
-    })();
+    filePath = path.normalize(filePath);
+    const possiblePaths: string[] = [
+      path.resolve(filePath),
+      path.join(__dirname, filePath),
+      path.join(process.cwd(), filePath),
+    ];
+    try {
+      possiblePaths.push(fs.realpathSync(filePath));
+    } catch (ex) {}
+    const fullPath = possiblePaths.find((path) => fs.existsSync(path));
     if (!fullPath) {
-      return Response.fromString(`${filePath} was not found`, {
-        statusCode: 404,
-      });
+      console.error(possiblePaths);
+      return Response.fromJson(
+        {
+          message: `${filePath} was not found`,
+        },
+        {
+          statusCode: 404,
+        }
+      );
     }
     const extension = path.extname(fullPath).substring(1);
     const content = fs.readFileSync(fullPath, encoding);
