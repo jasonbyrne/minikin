@@ -44,28 +44,28 @@ export class Response {
     encoding: Encoding = "utf8"
   ) {
     const fullPath = (() => {
+      const possiblePaths: string[] = [
+        path.join(__dirname, filePath),
+        path.join(process.cwd(), filePath),
+      ];
       try {
-        return fs.realpathSync(filePath);
-      } catch (ex) {
-        return path.join(process.cwd(), filePath);
-      }
+        possiblePaths.push(fs.realpathSync(filePath));
+      } catch (ex) {}
+      return possiblePaths.find((path) => fs.existsSync(path));
     })();
-    const extension = path.extname(fullPath).substr(1);
-    if (fs.existsSync(fullPath)) {
-      const content = fs.readFileSync(fullPath, encoding);
-      return new Response(content, {
-        ...{
-          headers: [
-            ["Content-Type", commonFileTypes[extension] || "text/html"],
-          ],
-        },
-        ...opts,
-      });
-    } else {
+    if (!fullPath) {
       return Response.fromString(`${fullPath} was not found`, {
         statusCode: 404,
       });
     }
+    const extension = path.extname(fullPath).substring(1);
+    const content = fs.readFileSync(fullPath, encoding);
+    return new Response(content, {
+      ...{
+        headers: [["Content-Type", commonFileTypes[extension] || "text/html"]],
+      },
+      ...opts,
+    });
   }
 
   static fromString(content: string, opts?: ResponseParams) {
