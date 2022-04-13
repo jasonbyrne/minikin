@@ -1,6 +1,6 @@
 {
   "name": "minikin",
-  "version": "1.0.29",
+  "version": "1.0.31",
   "description": "Light weight Node server in TypeScript with no dependencies and no extras",
   "main": "dist/index.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/jasonbyrne/minikin.git"
   },
-  "author": "Jason Byrne <jason.byrne@flosports.tv>",
+  "author": "Jason Byrne <jasonbyrne662@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jasonbyrne/minikin/issues"
