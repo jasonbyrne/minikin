@@ -54,7 +54,7 @@ export class Response {
       return possiblePaths.find((path) => fs.existsSync(path));
     })();
     if (!fullPath) {
-      return Response.fromString(`${fullPath} was not found`, {
+      return Response.fromString(`${filePath} was not found`, {
         statusCode: 404,
       });
     }

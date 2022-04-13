@@ -5,6 +5,7 @@ import { Server, Response } from "../../dist/index.js";
   const server = await Server.listen(8000);
 
   server.routes({
+    "GET /file": () => Response.fromFile("flagpole/fixtures/test.html"),
     "GET /hello": () =>
       Response.fromJson(
         {
@@ -143,5 +144,14 @@ import { Server, Response } from "../../dist/index.js";
     .open("GET /query?message=bar")
     .next((context) => {
       context.assert(context.response.jsonBody.$.message).equals("bar");
+    });
+
+  suite
+    .scenario("Return a file", "html")
+    .open("/file")
+    .next(async (context) => {
+      context.comment(context.response.body);
+      const h1 = await context.exists("h1");
+      context.assert(await h1.getInnerText()).like("hello world!");
     });
 })();

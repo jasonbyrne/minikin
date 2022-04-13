@@ -14,6 +14,7 @@ const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.listen(8000);
     server.routes({
+        "GET /file": () => index_js_1.Response.fromFile("flagpole/fixtures/test.html"),
         "GET /hello": () => index_js_1.Response.fromJson({
             message: "Hello from Minikin!",
         }, {
@@ -127,4 +128,12 @@ const index_js_1 = require("../../dist/index.js");
         .next((context) => {
         context.assert(context.response.jsonBody.$.message).equals("bar");
     });
+    suite
+        .scenario("Return a file", "html")
+        .open("/file")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.comment(context.response.body);
+        const h1 = yield context.exists("h1");
+        context.assert(yield h1.getInnerText()).like("hello world!");
+    }));
 }))();
