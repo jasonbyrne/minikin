@@ -14,7 +14,7 @@ const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.listen(8000);
     server.routes({
-        "GET /file": () => index_js_1.Response.fromFile("../flagpole/fixtures/test.html"),
+        "GET /file": () => index_js_1.Response.fromFile("../flagpole/fixtures/test2.html"),
         "GET /hello": () => index_js_1.Response.fromJson({
             message: "Hello from Minikin!",
         }, {

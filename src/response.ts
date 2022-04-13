@@ -48,7 +48,13 @@ export class Response {
       path.resolve(filePath),
       path.join(__dirname, filePath),
       path.join(process.cwd(), filePath),
+      path.join(path.dirname(process.argv[1]), filePath),
     ];
+    if (require.main) {
+      possiblePaths.push(
+        path.join(path.dirname(require.main?.filename), filePath)
+      );
+    }
     try {
       possiblePaths.push(fs.realpathSync(filePath));
     } catch (ex) {}
