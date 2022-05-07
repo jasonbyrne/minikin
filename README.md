@@ -5,9 +5,7 @@
 
 SMALL BUT MIGHTY!
 
-Yet another web server? Why?! Well, the other ones are really big. They have dependencies and do too much. I just wanted a simple way to start up an HTTP server, handle some routes, and handle the core use cases that you need most of the time. 80-20 rule. No other fluff.
-
-So here you go.
+Yet another web server? Why?! Well, the other ones are really big. They have dependencies and do too much. I just wanted a simple way to start up an HTTP server, handle some routes, and handle the core use cases that you need most of the time. 80-20 rule. No other fluff. And no dependencies!
 
 Install it with:
 
