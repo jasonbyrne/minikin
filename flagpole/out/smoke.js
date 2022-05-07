@@ -14,7 +14,7 @@ const index_js_1 = require("../../dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield index_js_1.Server.listen(8000);
     server.routes({
-        "GET /file": () => index_js_1.Response.fromFile("../flagpole/fixtures/test2.html"),
+        "GET /file": () => index_js_1.Response.fromFile("../flagpole/fixtures/test.html"),
         "GET /hello": () => index_js_1.Response.fromJson({
             message: "Hello from Minikin!",
         }, {
@@ -28,6 +28,7 @@ const index_js_1 = require("../../dist/index.js");
         }),
         "GET /cookie": (req) => index_js_1.Response.fromString(req.cookies.test),
         "GET /template": () => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
+        "GET /template2": () => index_js_1.Response.fromString("1+1=${data.value + 1}").render({ value: 1 }),
         "GET /protected": [
             () => { },
             (req) => {
@@ -106,6 +107,13 @@ const index_js_1 = require("../../dist/index.js");
         .next((context) => __awaiter(void 0, void 0, void 0, function* () {
         context.assert(context.response.statusCode).equals(200);
         context.assert(context.response.body).equals("Hello, Jason");
+    }));
+    suite
+        .scenario("Test Render Template with Eval", "resource")
+        .open("GET /template2")
+        .next((context) => __awaiter(void 0, void 0, void 0, function* () {
+        context.assert(context.response.statusCode).equals(200);
+        context.assert(context.response.body).equals("1+1=2");
     }));
     suite
         .scenario("Test Trailers", "resource")

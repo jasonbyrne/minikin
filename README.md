@@ -2,6 +2,7 @@
 
 ![Version](https://badgen.net/npm/v/minikin)
 ![Minified](https://badgen.net/bundlephobia/min/minikin)
+![Dependencies](https://badgen.net/bundlephobia/dependency-count/minikin)
 
 SMALL BUT MIGHTY!
 

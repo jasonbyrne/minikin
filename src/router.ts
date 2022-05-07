@@ -43,7 +43,7 @@ export class Router implements iRouter {
           }
           if (opts.url.includes("?")) {
             const query = new URLSearchParams(
-              opts.url.substr(opts.url.indexOf("?"))
+              opts.url.substring(opts.url.indexOf("?"))
             );
             opts.query = {};
             for (var qs of query.entries()) {
@@ -113,8 +113,8 @@ export class Router implements iRouter {
     return this;
   }
 
-  public route(path: string, ...callbacks: RouteCallback[]): Handler;
   public route(...callbacks: RouteCallback[]): Handler;
+  public route(path: string, ...callbacks: RouteCallback[]): Handler;
   public route(a: string | RouteCallback, ...b: RouteCallback[]): Handler {
     const handler = this._getHandler(a, b);
     this._handlers.push(handler);

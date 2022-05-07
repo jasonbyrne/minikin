@@ -143,18 +143,21 @@ export class Response {
     this._trailers = opts.trailers || [];
   }
 
-  private _replace(key: string, value: string) {
+  private _replace(key: string, value: unknown) {
     if (typeof this._content === "string") {
       this._content = this._content.replace(
         new RegExp(`{{ *${key} *}}`, "g"),
-        value
+        String(value)
       );
     }
   }
 
-  public render(replace: TemplateKeyValues): Response {
-    for (let key in replace) {
-      this._replace(key, replace[key]);
+  public render(data: TemplateKeyValues): Response {
+    if (typeof this._content === "string") {
+      for (let key in data) {
+        this._replace(key, data[key]);
+      }
+      this._content = eval("`" + this._content + "`");
     }
     return this;
   }

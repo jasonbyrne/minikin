@@ -1,8 +1,8 @@
 import { Request } from "./request";
 
 export class Route {
-  public method: string;
-  public uri: string;
+  public method: string = "GET";
+  public uri: string = "/";
 
   private get regexPath(): RegExp {
     return this.uri === "*"
@@ -31,7 +31,7 @@ export class Route {
 
   private _pathMatches(req: Request) {
     const url = req.url.includes("?")
-      ? req.url.substr(0, req.url.indexOf("?"))
+      ? req.url.substring(0, req.url.indexOf("?"))
       : req.url;
     return url.match(this.regexPath);
   }

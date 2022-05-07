@@ -26,6 +26,8 @@ import { Server, Response } from "../../dist/index.js";
     "GET /cookie": (req) => Response.fromString(req.cookies.test),
     "GET /template": () =>
       Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
+    "GET /template2": () =>
+      Response.fromString("1+1=${data.value + 1}").render({ value: 1 }),
     "GET /protected": [
       () => {},
       (req) => {
@@ -120,6 +122,14 @@ import { Server, Response } from "../../dist/index.js";
     .next(async (context) => {
       context.assert(context.response.statusCode).equals(200);
       context.assert(context.response.body).equals("Hello, Jason");
+    });
+
+  suite
+    .scenario("Test Render Template with Eval", "resource")
+    .open("GET /template2")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(200);
+      context.assert(context.response.body).equals("1+1=2");
     });
 
   suite

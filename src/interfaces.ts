@@ -40,7 +40,7 @@ export interface ResponseParams {
 }
 
 export type Headers = [string, string][];
-export type TemplateKeyValues = { [key: string]: string };
+export type TemplateKeyValues = { [key: string]: unknown };
 export type Encoding =
   | "utf8"
   | "binary"
