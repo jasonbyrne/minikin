@@ -1,8 +1,7 @@
 ![alt Minikin | Small but mighty typescript server + router](https://github.com/jasonbyrne/minikin/blob/master/minikin.png?raw=true)
 
 ![Version](https://badgen.net/npm/v/minikin)
-![Minified](https://badgen.net/bundlephobia/min/minikin)
-![Dependencies](https://badgen.net/bundlephobia/dependency-count/minikin)
+![Size](https://badgen.net/packagephobia/publish/minikin)
 
 SMALL BUT MIGHTY!
 
