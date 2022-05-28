@@ -1,10 +1,10 @@
-import { Request } from "./request";
-import { Response } from "./response";
-import { Server } from "./server";
-import { Router } from "./router";
-import { Handler } from "./handler";
-import { Route } from "./route";
-import { Afterware } from "./afterware";
+import Request from "./request";
+import Response from "./response";
+import Server from "./server";
+import Router from "./router";
+import Handler from "./handler";
+import Route from "./route";
+import Afterware from "./afterware";
 import {
   ResponseParams,
   Headers,

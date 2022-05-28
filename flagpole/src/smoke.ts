@@ -23,7 +23,7 @@ import { Server, Response } from "../../dist/index.js";
       Response.fromString("Hi", {
         trailers: [["foo", "bar"]],
       }),
-    "GET /cookie": (req) => Response.fromString(req.cookies.test),
+    "GET /cookie": (req) => Response.fromString(String(req.cookies.test)),
     "GET /template": () =>
       Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
     "GET /template2": () =>
@@ -38,7 +38,8 @@ import { Server, Response } from "../../dist/index.js";
       () => Response.fromString("bar"),
     ],
     "POST /json": (req) => Response.fromString(req.json.message),
-    "GET /query": (req) => Response.fromJson({ message: req.query.message }),
+    "GET /query": (req) =>
+      Response.fromJson({ message: req.query.get("message") }),
     "PATCH|PUT *": () => Response.fromString("PATCH or PUT"),
     "GET *": () =>
       Response.fromJson(

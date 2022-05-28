@@ -1,11 +1,10 @@
-import { Route } from "./route";
-import { Request } from "./request";
-import { Response } from "./response";
+import Route from "./route";
+import Request from "./request";
+import Response from "./response";
 import { AfterCallback } from "./interfaces";
 import { syncForEach } from "./util";
 
-export class Afterware extends Route {
-
+export default class Afterware extends Route {
   constructor(path: string, private _callbacks: AfterCallback[]) {
     super(path);
   }

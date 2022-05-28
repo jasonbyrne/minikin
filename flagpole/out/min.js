@@ -28,7 +28,7 @@ const index_js_1 = require("../../dist/index.js");
         .after(() => {
         return index_js_1.Response.fromString("another");
     });
-    const suite = flagpole_1.default("Minimal repro").base("http://localhost:8000");
+    const suite = (0, flagpole_1.default)("Minimal repro").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();
     });

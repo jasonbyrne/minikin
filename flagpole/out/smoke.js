@@ -26,7 +26,7 @@ const index_js_1 = require("../../dist/index.js");
         "GET /trailers": () => index_js_1.Response.fromString("Hi", {
             trailers: [["foo", "bar"]],
         }),
-        "GET /cookie": (req) => index_js_1.Response.fromString(req.cookies.test),
+        "GET /cookie": (req) => index_js_1.Response.fromString(String(req.cookies.test)),
         "GET /template": () => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
         "GET /template2": () => index_js_1.Response.fromString("1+1=${data.value + 1}").render({ value: 1 }),
         "GET /protected": [
@@ -39,14 +39,14 @@ const index_js_1 = require("../../dist/index.js");
             () => index_js_1.Response.fromString("bar"),
         ],
         "POST /json": (req) => index_js_1.Response.fromString(req.json.message),
-        "GET /query": (req) => index_js_1.Response.fromJson({ message: req.query.message }),
+        "GET /query": (req) => index_js_1.Response.fromJson({ message: req.query.get("message") }),
         "PATCH|PUT *": () => index_js_1.Response.fromString("PATCH or PUT"),
         "GET *": () => index_js_1.Response.fromJson({
             message: "File not found",
         }, { statusCode: 404 }),
         "* *": () => index_js_1.Response.fromString("No match"),
     });
-    const suite = flagpole_1.default("Basic Smoke Test of Site").base("http://localhost:8000");
+    const suite = (0, flagpole_1.default)("Basic Smoke Test of Site").base("http://localhost:8000");
     suite.finished.then(() => {
         server.close();
     });

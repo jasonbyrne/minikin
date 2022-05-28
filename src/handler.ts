@@ -1,17 +1,17 @@
-import { Route } from "./route";
-import { Request } from "./request";
-import { Response } from "./response";
+import Route from "./route";
+import Request from "./request";
+import Response from "./response";
 import { RouteCallback, AfterCallback } from "./interfaces";
 import { firstResponse, syncForEach } from "./util";
 
-export class Handler extends Route {
-  private _afters: AfterCallback[] = [];
+export default class Handler extends Route {
+  #afters: AfterCallback[] = [];
 
   constructor(path: string, private _callbacks: RouteCallback[]) {
     super(path);
   }
 
-  private _parseParams(pathMatches: RegExpMatchArray, req: Request) {
+  #parseParams(pathMatches: RegExpMatchArray, req: Request) {
     const params = this.uri.match(/\/:([a-z]+)/gi)?.map((key) => {
       return key.substr(2);
     });
@@ -22,8 +22,8 @@ export class Handler extends Route {
     }
   }
 
-  private async _processAfters(response: Response, request: Request) {
-    await syncForEach(this._afters, async (after: AfterCallback) => {
+  async #processAfters(response: Response, request: Request) {
+    await syncForEach(this.#afters, async (after: AfterCallback) => {
       response = (await after(response, request)) || response;
     });
     return response;
@@ -32,9 +32,9 @@ export class Handler extends Route {
   public async handle(req: Request) {
     const matches = this.matches(req);
     if (matches) {
-      this._parseParams(matches, req);
+      this.#parseParams(matches, req);
       const myResponse = await firstResponse(req, this._callbacks);
-      return this._processAfters(
+      return this.#processAfters(
         myResponse ||
           Response.fromString("No content in response", { statusCode: 500 }),
         req
@@ -44,7 +44,7 @@ export class Handler extends Route {
   }
 
   public after(...callbacks: AfterCallback[]) {
-    callbacks.forEach((callback) => this._afters.push(callback));
+    callbacks.forEach((callback) => this.#afters.push(callback));
     return this;
   }
 }

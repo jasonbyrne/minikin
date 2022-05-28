@@ -1,10 +1,10 @@
-import { Request } from "./request";
+import Request from "./request";
 
-export class Route {
+export default class Route {
   public method: string = "GET";
   public uri: string = "/";
 
-  private get regexPath(): RegExp {
+  get #regexPath(): RegExp {
     return this.uri === "*"
       ? new RegExp(".*")
       : new RegExp(
@@ -17,10 +17,10 @@ export class Route {
   }
 
   constructor(path: string) {
-    this._parsePath(path);
+    this.#parsePath(path);
   }
 
-  private _parsePath(path: string) {
+  #parsePath(path: string) {
     const arrPath = (() => {
       const arr = (path.trim() || "*").replace(/  +/g, " ").split(" ");
       return arr.length > 1 ? arr : ["*", arr[0]];
@@ -29,21 +29,21 @@ export class Route {
     this.uri = arrPath[arrPath.length > 1 ? 1 : 0];
   }
 
-  private _pathMatches(req: Request) {
+  #pathMatches(req: Request) {
     const url = req.url.includes("?")
       ? req.url.substring(0, req.url.indexOf("?"))
       : req.url;
-    return url.match(this.regexPath);
+    return url.match(this.#regexPath);
   }
 
-  private _methodMatches(req: Request) {
+  #methodMatches(req: Request) {
     const methods = this.method.split("|");
     return methods.includes(req.method) || methods.includes("*");
   }
 
   public matches(req: Request): RegExpMatchArray | false {
-    const pathMatches = this._pathMatches(req);
-    const methodMathces = this._methodMatches(req);
+    const pathMatches = this.#pathMatches(req);
+    const methodMathces = this.#methodMatches(req);
     return (methodMathces && pathMatches) || false;
   }
 }

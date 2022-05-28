@@ -12,15 +12,15 @@ import {
   CookieParams,
 } from "./interfaces";
 
-export class Response {
-  private _content: string | Buffer;
-  private _statusCode: number;
-  private _statusMessage: string;
-  private _headers: Headers;
-  private _trailers: Headers;
+export default class MinikinResponse {
+  #content: string | Buffer;
+  #statusCode: number;
+  #statusMessage: string;
+  #headers: Headers;
+  #trailers: Headers;
 
   static redirect(url: string, code: number = 302) {
-    return new Response("", {
+    return new MinikinResponse("", {
       statusCode: code,
       headers: [["Location", url]],
     });
@@ -31,11 +31,11 @@ export class Response {
     kv: TemplateKeyValues,
     opts?: ResponseParams
   ) {
-    return Response.fromFile(filePath, opts).render(kv);
+    return MinikinResponse.fromFile(filePath, opts).render(kv);
   }
 
   static fromBinary(filePath: string, opts?: ResponseParams) {
-    return Response.fromFile(filePath, opts, "binary");
+    return MinikinResponse.fromFile(filePath, opts, "binary");
   }
 
   static fromFile(
@@ -61,7 +61,7 @@ export class Response {
     const fullPath = possiblePaths.find((path) => fs.existsSync(path));
     if (!fullPath) {
       console.error(possiblePaths);
-      return Response.fromJson(
+      return MinikinResponse.fromJson(
         {
           message: `${filePath} was not found`,
         },
@@ -72,7 +72,7 @@ export class Response {
     }
     const extension = path.extname(fullPath).substring(1);
     const content = fs.readFileSync(fullPath, encoding);
-    return new Response(content, {
+    return new MinikinResponse(content, {
       ...{
         headers: [["Content-Type", commonFileTypes[extension] || "text/html"]],
       },
@@ -81,7 +81,7 @@ export class Response {
   }
 
   static fromString(content: string, opts?: ResponseParams) {
-    return new Response(content, {
+    return new MinikinResponse(content, {
       ...{
         headers: [["Content-Type", "text/plain"]],
       },
@@ -90,7 +90,7 @@ export class Response {
   }
 
   static fromJson(json: any, opts?: ResponseParams) {
-    return new Response(JSON.stringify(json), {
+    return new MinikinResponse(JSON.stringify(json), {
       ...{
         headers: [["Content-Type", "application/json"]],
       },
@@ -99,71 +99,75 @@ export class Response {
   }
 
   public get code(): number {
-    return this._statusCode;
+    return this.#statusCode;
   }
 
   public set code(value: number) {
-    this._statusCode = value;
+    this.#statusCode = value;
   }
 
   public get message(): string {
-    return this._statusMessage || defaultStatusMessage[this._statusCode] || "";
+    return this.#statusMessage || defaultStatusMessage[this.#statusCode] || "";
   }
 
   public set message(value: string) {
-    this._statusMessage = value;
+    this.#statusMessage = value;
   }
 
   public get content(): string | Buffer {
-    return this._content;
+    return this.#content;
   }
 
   public set content(value: string | Buffer) {
-    this._content = value;
+    this.#content = value;
   }
 
   public get trailers(): Headers {
-    return this._trailers;
+    return this.#trailers;
   }
 
   public get headers(): OutgoingHttpHeaders {
     const headers = {
-      "Content-Length": this._content.length,
+      "Content-Length": this.#content.length,
       Server: "minikin",
     };
-    this._headers.forEach((header) => (headers[header[0]] = header[1]));
+    this.#headers.forEach((header) => (headers[header[0]] = header[1]));
     return headers;
   }
 
   public constructor(content: string | Buffer, opts: ResponseParams) {
-    this._content = content || "";
-    this._statusCode = opts.statusCode || 200;
-    this._statusMessage = opts.statusMessage || "";
-    this._headers = opts.headers || [];
-    this._trailers = opts.trailers || [];
+    this.#content = content || "";
+    this.#statusCode = opts.statusCode || 200;
+    this.#statusMessage = opts.statusMessage || "";
+    this.#headers = opts.headers || [];
+    this.#trailers = opts.trailers || [];
   }
 
   private _replace(key: string, value: unknown) {
-    if (typeof this._content === "string") {
-      this._content = this._content.replace(
+    if (typeof this.#content === "string") {
+      this.#content = this.#content.replace(
         new RegExp(`{{ *${key} *}}`, "g"),
         String(value)
       );
     }
   }
 
-  public render(data: TemplateKeyValues): Response {
-    if (typeof this._content === "string") {
+  public render(data: TemplateKeyValues) {
+    if (typeof this.#content === "string") {
       for (let key in data) {
         this._replace(key, data[key]);
       }
-      this._content = eval("`" + this._content + "`");
+      this.#content = eval("`" + this.#content + "`");
     }
     return this;
   }
 
-  public cookie(key: string, value: string, params?: CookieParams): Response;
-  public cookie(key: string, value: string, ttl: number): Response;
+  public cookie(
+    key: string,
+    value: string,
+    params?: CookieParams
+  ): MinikinResponse;
+  public cookie(key: string, value: string, ttl: number): MinikinResponse;
   public cookie(key: string, value: string, opt?: CookieParams | number) {
     const arrParams: string[] =
       typeof opt == "number"
@@ -171,20 +175,20 @@ export class Response {
         : opt
         ? Object.keys(opt).map((key) => `${key}=${opt[key]}`)
         : [];
-    this._headers.push([
+    this.#headers.push([
       "Set-Cookie",
       `${key}=${value}; ${arrParams.join("; ")}`,
     ]);
     return this;
   }
 
-  public header(key: string, value: string): Response {
-    this._headers.push([key, value]);
+  public header(key: string, value: string) {
+    this.#headers.push([key, value]);
     return this;
   }
 
-  public trailer(key: string, value: string): Response {
-    this._trailers.push([key, value]);
+  public trailer(key: string, value: string) {
+    this.#trailers.push([key, value]);
     return this;
   }
 
@@ -196,5 +200,13 @@ export class Response {
         res.end();
       });
     return this;
+  }
+
+  public forServiceWorker() {
+    return new Response(this.content, {
+      headers: this.#headers,
+      status: this.#statusCode,
+      statusText: this.#statusMessage,
+    });
   }
 }

@@ -1,7 +1,7 @@
 import * as http from "http";
-import { Request } from "./request";
-import { Response } from "./response";
-import { Handler } from "./handler";
+import Request from "./request";
+import Response from "./response";
+import Handler from "./handler";
 
 export const commonFileTypes = {
   html: "text/html",
@@ -60,18 +60,15 @@ export interface CookieParams {
 }
 
 export interface KeyValue {
-  [key: string]: string;
+  [key: string]: string | string[] | undefined;
 }
 
-export interface iRequestOpts {
+export interface RequestOpts {
   method: string;
   url: string;
-  headers: http.IncomingHttpHeaders;
-  trailers: http.IncomingHttpHeaders;
+  headers: KeyValue;
+  trailers: KeyValue;
   body: string;
-  params: KeyValue;
-  query?: KeyValue;
-  json?: any;
 }
 
 export type RouteCallback = (

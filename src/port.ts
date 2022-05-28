@@ -5,7 +5,7 @@ import net from "net";
  * https://github.com/imlinus/portr
  */
 
-class Port {
+export default class Port {
   public static test(port: number): Promise<boolean> {
     return new Promise((resolve) => {
       const server = net.createServer();
@@ -53,5 +53,3 @@ class Port {
     });
   }
 }
-
-export default Port;

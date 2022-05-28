@@ -1,62 +1,23 @@
 import * as http from "http";
-import { Request } from "./request";
-import { Response } from "./response";
-import {
-  RouteCallback,
-  AfterCallback,
-  iRouter,
-  iRequestOpts,
-} from "./interfaces";
-import { syncForEach } from "./util";
-import { Handler } from "./handler";
-import { Afterware } from "./afterware";
+import MRequest from "./request";
+import MResponse from "./response";
+import { RouteCallback, AfterCallback, iRouter } from "./interfaces";
+import { interableToKeyValue, syncForEach } from "./util";
+import Handler from "./handler";
+import Afterware from "./afterware";
+import parseRequest from "./parse-request";
 
-export class Router implements iRouter {
-  _prelims: Handler[] = [];
-  _handlers: Handler[] = [];
-  _afters: Afterware[] = [];
+export default class Router implements iRouter {
+  #prelims: Handler[] = [];
+  #handlers: Handler[] = [];
+  #afters: Afterware[] = [];
 
   public static create() {
     return new Router();
   }
 
-  private async _parseRequest(req: http.IncomingMessage): Promise<Request> {
-    return new Promise((resolve) => {
-      const chunks: any[] = [];
-      req
-        .on("data", (chunk: any) => {
-          chunks.push(chunk);
-        })
-        .on("end", () => {
-          const opts: iRequestOpts = {
-            body: Buffer.concat(chunks).toString(),
-            url: req.url || "/",
-            headers: req.headers,
-            trailers: req.trailers,
-            method: req.method?.toUpperCase() || "GET",
-            params: {},
-          };
-          if (req.headers["content-type"] == "application/json") {
-            try {
-              opts.json = JSON.parse(opts.body);
-            } catch (ex) {}
-          }
-          if (opts.url.includes("?")) {
-            const query = new URLSearchParams(
-              opts.url.substring(opts.url.indexOf("?"))
-            );
-            opts.query = {};
-            for (var qs of query.entries()) {
-              opts.query[qs[0]] = qs[1];
-            }
-          }
-          resolve(new Request(opts));
-        });
-    });
-  }
-
-  private async _getResponse(req: Request): Promise<Response> {
-    const handlers = [...this._prelims, ...this._handlers];
+  async #getResponse(req: MRequest): Promise<MResponse> {
+    const handlers = [...this.#prelims, ...this.#handlers];
     for (let i = 0; i < handlers.length; i++) {
       try {
         const handler = handlers[i];
@@ -65,15 +26,15 @@ export class Router implements iRouter {
           return response;
         }
       } catch (ex) {
-        return Response.fromString(`Unhandled exception: ${ex}`, {
+        return MResponse.fromString(`Unhandled exception: ${ex}`, {
           statusCode: 500,
         });
       }
     }
-    return Response.fromString("Not Found", { statusCode: 404 });
+    return MResponse.fromString("Not Found", { statusCode: 404 });
   }
 
-  private _overloaded(a: string | Function, b: Function[]) {
+  #overloaded(a: string | Function, b: Function[]) {
     const path = typeof a == "string" ? a : "*";
     const callbacks =
       typeof a == "string"
@@ -85,21 +46,18 @@ export class Router implements iRouter {
     return { path: path, callbacks: callbacks };
   }
 
-  private _getAfterware(
-    a: string | AfterCallback,
-    b: AfterCallback[]
-  ): Afterware {
-    const { path, callbacks } = this._overloaded(a, b);
+  #getAfterware(a: string | AfterCallback, b: AfterCallback[]): Afterware {
+    const { path, callbacks } = this.#overloaded(a, b);
     return new Afterware(path, callbacks as AfterCallback[]);
   }
 
-  private _getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
-    const { path, callbacks } = this._overloaded(a, b);
+  #getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
+    const { path, callbacks } = this.#overloaded(a, b);
     return new Handler(path, callbacks as RouteCallback[]);
   }
 
-  private async _processAfters(response: Response, request: Request) {
-    await syncForEach(this._afters, async (after: Afterware) => {
+  async #processAfters(response: MResponse, request: MRequest) {
+    await syncForEach(this.#afters, async (after: Afterware) => {
       response = await after.execute(response, request);
     });
     return response;
@@ -109,15 +67,15 @@ export class Router implements iRouter {
   public use(path: string, ...callbacks: RouteCallback[]): iRouter;
   public use(...callbacks: RouteCallback[]): iRouter;
   public use(a: string | RouteCallback, ...b: RouteCallback[]): iRouter {
-    this._prelims.push(this._getHandler(a, b));
+    this.#prelims.push(this.#getHandler(a, b));
     return this;
   }
 
   public route(...callbacks: RouteCallback[]): Handler;
   public route(path: string, ...callbacks: RouteCallback[]): Handler;
   public route(a: string | RouteCallback, ...b: RouteCallback[]): Handler {
-    const handler = this._getHandler(a, b);
-    this._handlers.push(handler);
+    const handler = this.#getHandler(a, b);
+    this.#handlers.push(handler);
     return handler;
   }
 
@@ -135,19 +93,28 @@ export class Router implements iRouter {
   public afterAll(path: string, ...callbacks: AfterCallback[]): iRouter;
   public afterAll(...callbacks: AfterCallback[]): iRouter;
   public afterAll(a: string | AfterCallback, ...b: AfterCallback[]): iRouter {
-    this._afters.push(this._getAfterware(a, b));
+    this.#afters.push(this.#getAfterware(a, b));
     return this;
   }
 
   public async handle(req: http.IncomingMessage, res?: http.ServerResponse) {
-    const request = await this._parseRequest(req);
-    const response = await this._processAfters(
-      await this._getResponse(request),
-      request
-    );
-    if (res) {
-      response.send(res);
-    }
+    const request = await parseRequest(req);
+    const initialResponse = await this.#getResponse(request);
+    const response = await this.#processAfters(initialResponse, request);
+    if (res) response.send(res);
     return response;
+  }
+
+  public async serviceWorker(req: Request) {
+    const request = new MRequest({
+      method: req.method,
+      url: req.url,
+      headers: interableToKeyValue(req.headers.entries()),
+      trailers: {},
+      body: await req.text(),
+    });
+    const initialResponse = await this.#getResponse(request);
+    const response = await this.#processAfters(initialResponse, request);
+    return response.forServiceWorker();
   }
 }
