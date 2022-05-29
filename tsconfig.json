@@ -25,6 +25,17 @@
     "strict": true,
     "preserveConstEnums": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "**/__tests__/**", "tests"]
+  "exclude": [
+    "node_modules",
+    "**/*/lib",
+    "**/*/dist",
+    "**/__tests__/**",
+    "tests",
+    "flagpole", "**/*.spec.ts"
+  ],
+  "include": ["packages/**/*"],
+  "references": [
+    { "path": "./packages/router/" },
+    { "path": "./packages/server/" }
+  ]
 }

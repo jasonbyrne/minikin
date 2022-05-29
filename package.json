@@ -1,27 +1,38 @@
 {
-  "name": "minikin",
-  "version": "1.1.1",
+  "name": "minikin-monorepo",
+  "version": "2.0.1",
   "description": "Light weight Node server in TypeScript with no dependencies and no extras",
-  "main": "dist/index.js",
+  "author": "Jason Byrne <jasonbyrne662@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "./packages/**"
+  ],
+  "npmClient": "npm",
+  "useWorkspaces": true,
+  "engines": {
+    "node": ">16.0.0"
+  },
   "scripts": {
-    "start": "node ./dist/index",
-    "build": "tsc",
     "test": "flagpole run --all --build",
-    "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
+    "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
+    "build": "lerna run build",
+    "publish": "lerna run build && lerna run tsc && lerna publish"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jasonbyrne/minikin.git"
   },
-  "author": "Jason Byrne <jasonbyrne662@gmail.com>",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/jasonbyrne/minikin/issues"
   },
   "homepage": "https://github.com/jasonbyrne/minikin#readme",
   "devDependencies": {
     "@cloudflare/workers-types": "^3.11.0",
+    "@types/node": "^17.0.36",
     "flagpole": "^2.4.3",
+    "husky": "^8.0.1",
+    "lerna": "^5.0.0",
     "prettier": "^2.6.2",
     "typescript": "^4.7.2"
   }

@@ -1,18 +1,19 @@
 import flagpole from "flagpole";
-import { Server, Response } from "../../dist/index.js";
+import { Server, Response } from "../../packages/server/dist/index.js";
 
 (async () => {
   const server = await Server.listen(8000);
 
   server.routes({
-    "GET /file": () => Response.fromFile("../flagpole/fixtures/test.html"),
+    "GET /string": () => "Hello",
+    "GET /file": () => Response.fromFile("./flagpole/fixtures/test.html"),
     "GET /hello": () =>
       Response.fromJson(
         {
           message: "Hello from Minikin!",
         },
         {
-          headers: [["X-Test", "Hello"]],
+          headers: { "X-Test": "Hello" },
         }
       ),
     "GET /hello/:name": (req) =>
@@ -21,7 +22,7 @@ import { Server, Response } from "../../dist/index.js";
       }),
     "GET /trailers": () =>
       Response.fromString("Hi", {
-        trailers: [["foo", "bar"]],
+        trailers: { foo: "bar" },
       }),
     "GET /cookie": (req) => Response.fromString(String(req.cookies.test)),
     "GET /template": () =>
@@ -164,5 +165,13 @@ import { Server, Response } from "../../dist/index.js";
       context.comment(context.response.body);
       const h1 = await context.exists("h1");
       context.assert(await h1.getInnerText()).like("hello world!");
+    });
+
+  suite
+    .scenario("Return a string", "resource")
+    .open("/string")
+    .next(async (context) => {
+      context.assert(context.response.statusCode).equals(200);
+      context.assert(context.response.body).equals("Hello");
     });
 })();

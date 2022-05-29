@@ -1,8 +1,8 @@
 import flagpole from "flagpole";
-import minikin, { Response } from "../../dist/index.js";
+import { Server, Response } from "../../packages/server/dist/index.js";
 
 (async () => {
-  const server = await minikin.server(8000);
+  const server = await Server.listen(8000);
 
   server.afterAll(async (res) => {
     res.header("X-Flagpole", "1");

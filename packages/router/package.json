@@ -1,0 +1,24 @@
+{
+  "name": "minikin-router",
+  "version": "2.0.1",
+  "description": "Light weight Node server in TypeScript with no dependencies and no extras",
+  "main": "dist/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasonbyrne/minikin.git"
+  },
+  "author": "Jason Byrne <jasonbyrne662@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jasonbyrne/minikin/issues"
+  },
+  "homepage": "https://github.com/jasonbyrne/minikin#readme",
+  "devDependencies": {}
+}
