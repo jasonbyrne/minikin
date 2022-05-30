@@ -4,7 +4,7 @@ import Server, { Response } from "../../packages/server/dist/index.js";
 (async () => {
   const server = await Server(8000);
 
-  server.afterAll(async (res) => {
+  server.after(async (res) => {
     res.header("X-Flagpole", "1");
   });
 
