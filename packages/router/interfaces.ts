@@ -48,7 +48,7 @@ export interface RequestOpts {
   method: string;
   url: string;
   headers: KeyValue;
-  trailers: KeyValue;
+  trailers?: KeyValue;
   body: string;
 }
 

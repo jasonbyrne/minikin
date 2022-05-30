@@ -31,7 +31,8 @@
     "**/*/dist",
     "**/__tests__/**",
     "tests",
-    "flagpole", "**/*.spec.ts"
+    "flagpole",
+    "**/*.spec.ts"
   ],
   "include": ["packages/**/*"],
   "references": [

@@ -4,7 +4,6 @@ import { RouteCallback, AfterCallback, Routes } from "./interfaces";
 import { syncForEach } from "./sync-foreach";
 import Handler from "./handler";
 import Afterware from "./afterware";
-import { mapToObject } from "./map-to-object";
 
 export default class Router {
   #prelims: Handler[] = [];
@@ -103,26 +102,12 @@ export default class Router {
     return this;
   }
 
-  public handle(request: Request, env: any, ctx: any): Promise<MinikinResponse>;
-  public handle(request: MinikinRequest): Promise<MinikinResponse>;
   public async handle(
-    request: Request | MinikinRequest,
+    request: MinikinRequest,
     env?: any,
     ctx?: any
   ): Promise<MinikinResponse> {
-    const parsedRequest = await (async () => {
-      if (request instanceof MinikinRequest) {
-        return request;
-      }
-      return new MinikinRequest({
-        url: request.url,
-        method: request.method,
-        headers: mapToObject(request.headers as unknown as Map<string, string>),
-        trailers: {},
-        body: await request.text(),
-      });
-    })();
-    const initialResponse = await this.#getResponse(parsedRequest, env, ctx);
-    return this.#processAfters(initialResponse, parsedRequest, env, ctx);
+    const initialResponse = await this.#getResponse(request, env, ctx);
+    return this.#processAfters(initialResponse, request, env, ctx);
   }
 }
