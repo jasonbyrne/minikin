@@ -378,7 +378,7 @@ minikin.route("GET /protected", requireAuthentication, () =>
 );
 ```
 
-You can add global level middleware as well, which can act as plugins and pre-processors. The `use` method allows this, similar to other frameworks. There is an alias for this called `beforeAll`, which describes better what it does (runs before the normal routes). However, `use` is the standard with other frameworks and so more familiar to developers.
+You can add global level middleware as well, which can act as plugins and pre-processors. The `use` method allows this, similar to other frameworks. There is an alias for this called `before`, which describes better what it does (runs before the normal routes). However, `use` is the standard with other frameworks and so more familiar to developers.
 
 ```javascript
 minikin.use(parseJwtToken);
@@ -439,7 +439,7 @@ The default status code for a redirect is 302, but you can change that with the 
 minikin.route("GET /foo", () => Response.redirect("/bar", 301));
 ```
 
-# After
+# Afterware
 
 On any route, you can call the `after` method to run logic on the corresponding response. This allows you to modify the response before it gets sent back to the user. This first example would override the response of "hi" with "bye" instead:
 
@@ -451,18 +451,18 @@ router
   });
 ```
 
-If you want to run a modifier on the response of all endpoints (not a specific route), you can do so with the `afterAll` method.
+If you want to run a modifier on the response of all endpoints (not a specific route), you can do so with the `after` method.
 
 ```javascript
-router.afterAll((res) => {
+router.after((res) => {
   res.header("X-Some-Header", "value");
 });
 ```
 
-Just like you can with `use`/`beforeAll` and `route`, you can add in a path as the first argument to `afterAll` to only run it on matching paths.
+Just like you can with `use`/`before` and `route`, you can add in a path as the first argument to `after` to only run it on matching paths.
 
 ```javascript
-router.afterAll("GET /api/*", (res) => {
+router.after("GET /api/*", (res) => {
   // Allow CORS on API endpoints
   res.header("Access-Control-Allow-Origin", "*");
 });
@@ -471,7 +471,7 @@ router.afterAll("GET /api/*", (res) => {
 And potentially, you could completely replace a response by returning it.
 
 ```javascript
-router.afterAll("GET /replaceMe", (res) => {
+router.after("GET /replaceMe", (res) => {
   return Response.fromString("some new response");
 });
 ```

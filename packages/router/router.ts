@@ -61,7 +61,7 @@ export default class Router {
     return response;
   }
 
-  public beforeAll = this.use;
+  public before = this.use;
   public use(path: string, ...callbacks: RouteCallback[]): Router;
   public use(...callbacks: RouteCallback[]): Router;
   public use(a: string | RouteCallback, ...b: RouteCallback[]) {
@@ -86,9 +86,9 @@ export default class Router {
     return this;
   }
 
-  public afterAll(path: string, ...callbacks: AfterCallback[]): Router;
-  public afterAll(...callbacks: AfterCallback[]): Router;
-  public afterAll(a: string | AfterCallback, ...b: AfterCallback[]) {
+  public after(path: string, ...callbacks: AfterCallback[]): Router;
+  public after(...callbacks: AfterCallback[]): Router;
+  public after(a: string | AfterCallback, ...b: AfterCallback[]) {
     this.#afters.push(this.#getAfterware(a, b));
     return this;
   }
