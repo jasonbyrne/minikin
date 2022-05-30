@@ -7,6 +7,5 @@ import Afterware from "./afterware";
 
 export { Router, Response, Request, Route, Handler, Afterware };
 
-export default class Minikin {
-  router = Router.create;
-}
+const router = () => new Router();
+export default router;

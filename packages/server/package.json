@@ -2,6 +2,21 @@
   "name": "minikin",
   "version": "2.0.1",
   "description": "Light weight Node server in TypeScript with no dependencies and no extras",
+  "keywords": [
+    "http",
+    "https",
+    "server",
+    "router",
+    "typescript",
+    "zero-deps",
+    "no-deps",
+    "tiny",
+    "framework",
+    "microframework",
+    "webserver",
+    "api",
+    "rest"
+  ],
   "main": "dist/index.js",
   "publishConfig": {
     "access": "public"

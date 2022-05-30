@@ -1,6 +1,6 @@
 import MinikinRequest from "./request";
 import MinikinResponse from "./response";
-import { RouteCallback, AfterCallback } from "./interfaces";
+import { RouteCallback, AfterCallback, Routes } from "./interfaces";
 import { syncForEach } from "./util";
 import Handler from "./handler";
 import Afterware from "./afterware";
@@ -10,8 +10,8 @@ export default class Router {
   #handlers: Handler[] = [];
   #afters: Afterware[] = [];
 
-  public static create() {
-    return new Router();
+  public constructor(routes?: Routes) {
+    if (routes) this.routes(routes);
   }
 
   async #getResponse(req: MinikinRequest): Promise<MinikinResponse> {
@@ -24,12 +24,12 @@ export default class Router {
           return response;
         }
       } catch (ex) {
-        return MinikinResponse.fromString(`Unhandled exception: ${ex}`, {
+        return new MinikinResponse(`Unhandled exception: ${ex}`, {
           statusCode: 500,
         });
       }
     }
-    return MinikinResponse.fromString("Not Found", { statusCode: 404 });
+    return new MinikinResponse("Not Found", { statusCode: 404 });
   }
 
   #overloaded(a: string | Function, b: Function[]) {
@@ -77,7 +77,7 @@ export default class Router {
     return handler;
   }
 
-  public routes(routes: { [path: string]: RouteCallback[] | RouteCallback }) {
+  public routes(routes: Routes) {
     for (const path in routes) {
       const cb = routes[path];
       const callbacks = Array.isArray(cb) ? cb : [cb];

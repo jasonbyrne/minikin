@@ -1,8 +1,8 @@
 import flagpole from "flagpole";
-import { Server, Response } from "../../packages/server/dist/index.js";
+import Server, { Response } from "../../packages/server/dist/index.js";
 
 (async () => {
-  const server = await Server.listen(8000);
+  const server = await Server(8000);
 
   server.routes({
     "GET /string": () => "Hello",

@@ -1,10 +1,9 @@
-import { Router } from "minikin-router";
+import * as https from "https";
 import Server from "./server";
 
 export { Server };
 export * from "minikin-router";
 
-export default class Minikin {
-  server = Server.listen;
-  router = Router.create;
-}
+const server = (portNumber?: number, opts?: https.ServerOptions) =>
+  Server.listen(portNumber, opts);
+export default server;

@@ -22,10 +22,10 @@ npm i minikin
 Now in our code, we will import Minikin and then instantiate an instance of Minikin Server. Finally we define a route that will wildcard respond to any request with "Hello from Minikin!". Notice that `Minikin.server()` is awaited, so we wrap the entire thing in a self-calling `async` function.
 
 ```javascript
-import { Server } from "minikin";
+import Server from "minikin";
 
 (async () => {
-  const minikin = await Server.listen();
+  const minikin = await Server();
 
   minikin.route("*", () => "Hello from Minikin!";
 })();
@@ -40,13 +40,13 @@ const port = minikin.port;
 However, typically you want to specify the port to listen on. Just use the first argument to do so:
 
 ```javascript
-const minikin = await Server.listen(8080);
+const minikin = await Server(8080);
 ```
 
 Or of course you can use an environment variable:
 
 ```javascript
-const minikin = await Server.listen(process.env.PORT);
+const minikin = await Server(process.env.PORT);
 ```
 
 ## Using the router only
@@ -68,9 +68,9 @@ npm i minikin-router
 Then you'd import `minikin-router` instead of `minikin` proper:
 
 ```javascript
-import { Router } from "minikin-router";
+import Router from "minikin-router";
 
-const minikin = Router.create();
+const minikin = Router();
 ```
 
 If aren't using the Minikin server, it means you're listening for incoming requests yourself. So define the routes the same way the below examples show you. Then when you get the event for the incoming request, pass it to the Minikin router with the `handle` method. It will parse it and return the response, which must be awaited.

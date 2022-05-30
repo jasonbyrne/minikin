@@ -1,7 +1,7 @@
 {
   "name": "minikin-monorepo",
   "version": "2.0.1",
-  "description": "Light weight Node server in TypeScript with no dependencies and no extras",
+  "description": "Light-weight Node router and server in TypeScript with no dependencies and no extras",
   "author": "Jason Byrne <jasonbyrne662@gmail.com>",
   "license": "MIT",
   "private": true,

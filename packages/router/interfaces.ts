@@ -75,3 +75,5 @@ export type AfterCallback = (
   response: MinikinResponse,
   request: MinikinRequest
 ) => void | MinikinResponse | Promise<void | MinikinResponse>;
+
+export type Routes = { [path: string]: RouteCallback[] | RouteCallback };
