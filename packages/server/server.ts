@@ -1,6 +1,6 @@
 import * as http from "http";
 import * as https from "https";
-import { Router } from "minikin-router";
+import { Router, mapToObject } from "minikin-router";
 import parseRequest from "./parse-request";
 import Port from "./port";
 
@@ -41,9 +41,13 @@ export default class Server extends Router {
       const request = await parseRequest(req);
       const response = await this.handle(request);
       res
-        .writeHead(response.code, response.message, response.headers)
+        .writeHead(
+          response.status,
+          response.statusText,
+          mapToObject(response.headers)
+        )
         .write(response.content, () => {
-          res.addTrailers(response.trailers);
+          res.addTrailers(mapToObject(response.trailers));
           res.end();
         });
     };

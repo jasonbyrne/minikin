@@ -17,16 +17,16 @@ const index_js_1 = require("../../packages/server/dist/index.js");
         res.header("X-Flagpole", "1");
     }));
     server
-        .route("GET /hello", () => index_js_1.Response.fromString("test"))
+        .route("GET /hello", () => (0, index_js_1.text)("test"))
         .after((res) => __awaiter(void 0, void 0, void 0, function* () {
         res.content = "foo";
         res.header("foo", "bar");
     }));
-    server.route("GET /json", () => index_js_1.Response.fromJson({ message: "test" }));
+    server.route("GET /json", () => (0, index_js_1.json)({ message: "test" }));
     server
-        .route("GET /replace", () => index_js_1.Response.fromString("one thing"))
+        .route("GET /replace", () => (0, index_js_1.text)("one thing"))
         .after(() => {
-        return index_js_1.Response.fromString("another");
+        return (0, index_js_1.text)("another");
     });
     const suite = (0, flagpole_1.default)("Minimal repro").base("http://localhost:8000");
     suite.finished.then(() => {

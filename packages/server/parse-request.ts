@@ -1,7 +1,9 @@
 import * as http from "http";
-import { Request } from "minikin-router";
+import { KeyValue, MinikinRequest } from "minikin-router";
 
-const parseRequest = async (req: http.IncomingMessage): Promise<Request> => {
+const parseRequest = async (
+  req: http.IncomingMessage
+): Promise<MinikinRequest> => {
   return new Promise((resolve) => {
     const chunks: any[] = [];
     req
@@ -9,12 +11,20 @@ const parseRequest = async (req: http.IncomingMessage): Promise<Request> => {
         chunks.push(chunk);
       })
       .on("end", () => {
+        const headers: KeyValue = {};
+        Object.entries(req.headers).forEach(([key, value]) => {
+          headers[key] = String(value);
+        });
+        const trailers: KeyValue = {};
+        Object.entries(req.trailers).forEach(([key, value]) => {
+          trailers[key] = String(value);
+        });
         resolve(
-          new Request({
+          new MinikinRequest({
             body: Buffer.concat(chunks).toString(),
             url: req.url || "/",
-            headers: req.headers,
-            trailers: req.trailers,
+            headers,
+            trailers,
             method: req.method?.toUpperCase() || "GET",
           })
         );

@@ -1,5 +1,5 @@
 import flagpole from "flagpole";
-import Server, { Response } from "../../packages/server/dist/index.js";
+import Server, { json, text } from "../../packages/server/dist/index.js";
 
 (async () => {
   const server = await Server(8000);
@@ -9,17 +9,17 @@ import Server, { Response } from "../../packages/server/dist/index.js";
   });
 
   server
-    .route("GET /hello", () => Response.fromString("test"))
+    .route("GET /hello", () => text("test"))
     .after(async (res) => {
       res.content = "foo";
       res.header("foo", "bar");
     });
-  server.route("GET /json", () => Response.fromJson({ message: "test" }));
+  server.route("GET /json", () => json({ message: "test" }));
 
   server
-    .route("GET /replace", () => Response.fromString("one thing"))
+    .route("GET /replace", () => text("one thing"))
     .after(() => {
-      return Response.fromString("another");
+      return text("another");
     });
 
   const suite = flagpole("Minimal repro").base("http://localhost:8000");

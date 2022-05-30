@@ -1,159 +1,45 @@
-import fs = require("fs");
-import path = require("path");
-import {
-  TemplateKeyValues,
-  ResponseParams,
-  Encoding,
-  commonFileTypes,
-  defaultStatusMessage,
-  CookieParams,
-  KeyValue,
-  Value,
-} from "./interfaces";
+import { mapToObject } from "./map-to-object";
+import { TemplateKeyValues, ResponseParams, CookieParams } from "./interfaces";
+import { objectToMap } from "./object-to-map";
 
 export default class MinikinResponse {
-  #content: string | Buffer;
-  #statusCode: number;
-  #statusMessage: string;
-  #headers: KeyValue;
-  #trailers: KeyValue;
+  public headers: Map<string, string>;
+  public trailers: Map<string, string>;
 
-  static redirect(url: string, code: number = 302) {
-    return new MinikinResponse("", {
-      statusCode: code,
-      headers: { Location: url },
-    });
+  public get status() {
+    return this.opts.statusCode || 200;
   }
 
-  static fromTemplate(
-    filePath: string,
-    kv: TemplateKeyValues,
-    opts?: ResponseParams
+  public get statusText() {
+    return this.opts.statusMessage || "";
+  }
+
+  public constructor(
+    public content: string | Buffer,
+    private opts: ResponseParams
   ) {
-    return MinikinResponse.fromFile(filePath, opts).render(kv);
+    this.headers = objectToMap(this.opts.headers);
+    this.trailers = objectToMap(this.opts.trailers);
   }
 
-  static fromBinary(filePath: string, opts?: ResponseParams) {
-    return MinikinResponse.fromFile(filePath, opts, "binary");
-  }
-
-  static fromFile(
-    filePath: string,
-    opts?: ResponseParams,
-    encoding: Encoding = "utf8"
-  ) {
-    filePath = path.normalize(filePath);
-    const possiblePaths: string[] = [
-      path.resolve(filePath),
-      path.join(__dirname, filePath),
-      path.join(process.cwd(), filePath),
-      path.join(path.dirname(process.argv[1]), filePath),
-    ];
-    if (require.main) {
-      possiblePaths.push(
-        path.join(path.dirname(require.main?.filename), filePath)
-      );
-    }
-    try {
-      possiblePaths.push(fs.realpathSync(filePath));
-    } catch (ex) {}
-    const fullPath = possiblePaths.find((path) => fs.existsSync(path));
-    if (!fullPath) {
-      console.error(possiblePaths);
-      return MinikinResponse.fromJson(
-        {
-          message: `${filePath} was not found`,
-        },
-        {
-          statusCode: 404,
-        }
-      );
-    }
-    const extension = path.extname(fullPath).substring(1);
-    const content = fs.readFileSync(fullPath, encoding);
-    return new MinikinResponse(content, {
-      ...{
-        headers: { "Content-Type": commonFileTypes[extension] || "text/html" },
-      },
-      ...opts,
+  public clone(newContent?: string) {
+    return new MinikinResponse(newContent || this.content, {
+      ...this.opts,
+      headers: mapToObject(this.headers),
+      trailers: mapToObject(this.trailers),
     });
   }
 
-  static fromString(content: string, opts?: ResponseParams) {
-    return new MinikinResponse(content, {
-      ...{
-        headers: { "Content-Type": "text/plain" },
-      },
-      ...opts,
-    });
-  }
-
-  static fromJson(json: any, opts?: ResponseParams) {
-    return new MinikinResponse(JSON.stringify(json), {
-      ...{
-        headers: { "Content-Type": "application/json" },
-      },
-      ...opts,
-    });
-  }
-
-  public get code(): number {
-    return this.#statusCode;
-  }
-
-  public set code(value: number) {
-    this.#statusCode = value;
-  }
-
-  public get message(): string {
-    return this.#statusMessage || defaultStatusMessage[this.#statusCode] || "";
-  }
-
-  public set message(value: string) {
-    this.#statusMessage = value;
-  }
-
-  public get content(): string | Buffer {
-    return this.#content;
-  }
-
-  public set content(value: string | Buffer) {
-    this.#content = value;
-  }
-
-  public get trailers() {
-    return this.#trailers;
-  }
-
-  public get headers() {
-    return this.#headers;
-  }
-
-  public constructor(content: string | Buffer, opts: ResponseParams) {
-    this.#content = content || "";
-    this.#statusCode = opts.statusCode || 200;
-    this.#statusMessage = opts.statusMessage || "";
-    this.#headers = opts.headers || {};
-    this.#trailers = opts.trailers || {};
-  }
-
-  private _replace(key: string, value: unknown) {
-    if (typeof this.#content === "string") {
-      this.#content = this.#content.replace(
+  public render(data: TemplateKeyValues): MinikinResponse {
+    let content = String(this.content);
+    for (let key in data) {
+      content = content.replace(
         new RegExp(`{{ *${key} *}}`, "g"),
-        String(value)
+        String(data[key])
       );
     }
-  }
-
-  public render(data: TemplateKeyValues) {
-    if (typeof this.#content === "string") {
-      for (let key in data) {
-        this._replace(key, data[key]);
-      }
-      this.#content = eval("`" + this.#content + "`");
-    }
-    return this;
+    content = eval("`" + content + "`");
+    return this.clone(content);
   }
 
   public cookie(
@@ -169,17 +55,17 @@ export default class MinikinResponse {
         : opt
         ? Object.keys(opt).map((key) => `${key}=${opt[key]}`)
         : [];
-    this.#headers["Set-Cookie"] = `${key}=${value}; ${arrParams.join("; ")}`;
+    this.headers.set("Set-Cookie", `${key}=${value}; ${arrParams.join("; ")}`);
     return this;
   }
 
-  public header(key: string, value: Value) {
-    this.#headers[key] = value;
+  public header(key: string, value: string) {
+    this.headers.set(key, value);
     return this;
   }
 
-  public trailer(key: string, value: Value) {
-    this.#trailers[key] = value;
+  public trailer(key: string, value: string) {
+    this.trailers.set(key, value);
     return this;
   }
 }

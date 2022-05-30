@@ -15,37 +15,37 @@ const index_js_1 = require("../../packages/server/dist/index.js");
     const server = yield (0, index_js_1.default)(8000);
     server.routes({
         "GET /string": () => "Hello",
-        "GET /file": () => index_js_1.Response.fromFile("./flagpole/fixtures/test.html"),
-        "GET /hello": () => index_js_1.Response.fromJson({
+        "GET /file": () => (0, index_js_1.file)("./flagpole/fixtures/test.html"),
+        "GET /hello": () => (0, index_js_1.json)({
             message: "Hello from Minikin!",
         }, {
             headers: { "X-Test": "Hello" },
         }),
-        "GET /hello/:name": (req) => index_js_1.Response.fromJson({
-            message: `Hello to ${req.params.name} from Minikin!`,
+        "GET /hello/:name": (req) => (0, index_js_1.json)({
+            message: `Hello to ${req.params.get("name")} from Minikin!`,
         }),
-        "GET /trailers": () => index_js_1.Response.fromString("Hi", {
+        "GET /trailers": () => (0, index_js_1.text)("Hi", {
             trailers: { foo: "bar" },
         }),
-        "GET /cookie": (req) => index_js_1.Response.fromString(String(req.cookies.test)),
-        "GET /template": () => index_js_1.Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
-        "GET /template2": () => index_js_1.Response.fromString("1+1=${data.value + 1}").render({ value: 1 }),
+        "GET /cookie": (req) => (0, index_js_1.text)(String(req.cookies.get("test"))),
+        "GET /template": () => (0, index_js_1.text)("Hello, {{ name }}").render({ name: "Jason" }),
+        "GET /template2": () => (0, index_js_1.text)("1+1=${data.value + 1}").render({ value: 1 }),
         "GET /protected": [
             () => { },
             (req) => {
                 if (!req.headers["Authorization"]) {
-                    return index_js_1.Response.fromString("foo", { statusCode: 401 });
+                    return (0, index_js_1.text)("foo", { statusCode: 401 });
                 }
             },
-            () => index_js_1.Response.fromString("bar"),
+            () => (0, index_js_1.text)("bar"),
         ],
-        "POST /json": (req) => index_js_1.Response.fromString(req.json.message),
-        "GET /query": (req) => index_js_1.Response.fromJson({ message: req.query.get("message") }),
-        "PATCH|PUT *": () => index_js_1.Response.fromString("PATCH or PUT"),
-        "GET *": () => index_js_1.Response.fromJson({
+        "POST /json": (req) => { var _a; return (0, index_js_1.text)(String((_a = req.json) === null || _a === void 0 ? void 0 : _a.message)); },
+        "GET /query": (req) => (0, index_js_1.json)({ message: req.query.get("message") }),
+        "PATCH|PUT *": () => (0, index_js_1.text)("PATCH or PUT"),
+        "GET *": () => (0, index_js_1.json)({
             message: "File not found",
         }, { statusCode: 404 }),
-        "* *": () => index_js_1.Response.fromString("No match"),
+        "* *": () => (0, index_js_1.text)("No match"),
     });
     const suite = (0, flagpole_1.default)("Basic Smoke Test of Site").base("http://localhost:8000");
     suite.finished.then(() => {

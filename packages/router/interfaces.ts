@@ -1,20 +1,6 @@
 import MinikinRequest from "./request";
 import MinikinResponse from "./response";
 
-export const commonFileTypes = {
-  html: "text/html",
-  png: "image/png",
-  jpg: "image/jpeg",
-  gif: "image/gif",
-  pdf: "application/pdf",
-  css: "text/css",
-  ico: "image/vnd.microsoft.icon",
-  js: "text/javascript",
-  json: "application/json",
-  svg: "image/svg+xml",
-  txt: "text/plain",
-};
-
 export const defaultStatusMessage = {
   200: "OK",
   201: "Created",
@@ -56,8 +42,7 @@ export interface CookieParams {
   Expires?: Date;
 }
 
-export type Value = string | string[] | undefined;
-export type KeyValue = Record<string, Value>;
+export type KeyValue = Record<string, string>;
 
 export interface RequestOpts {
   method: string;
@@ -68,12 +53,26 @@ export interface RequestOpts {
 }
 
 export type RouteCallback = (
-  req: MinikinRequest
+  req: MinikinRequest,
+  env?: any,
+  ctx?: any
 ) => MinikinResponse | string | void | Promise<MinikinResponse | string | void>;
 
 export type AfterCallback = (
   response: MinikinResponse,
-  request: MinikinRequest
+  request: MinikinRequest,
+  env?: any,
+  ctx?: any
 ) => void | MinikinResponse | Promise<void | MinikinResponse>;
 
 export type Routes = { [path: string]: RouteCallback[] | RouteCallback };
+
+/*
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | { [x: string]: JsonValue }
+  | Array<JsonValue>;
+  */
+export type JsonValue = any;

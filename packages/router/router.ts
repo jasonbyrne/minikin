@@ -1,9 +1,10 @@
 import MinikinRequest from "./request";
 import MinikinResponse from "./response";
 import { RouteCallback, AfterCallback, Routes } from "./interfaces";
-import { syncForEach } from "./util";
+import { syncForEach } from "./sync-foreach";
 import Handler from "./handler";
 import Afterware from "./afterware";
+import { mapToObject } from "./map-to-object";
 
 export default class Router {
   #prelims: Handler[] = [];
@@ -14,12 +15,16 @@ export default class Router {
     if (routes) this.routes(routes);
   }
 
-  async #getResponse(req: MinikinRequest): Promise<MinikinResponse> {
+  async #getResponse(
+    req: MinikinRequest,
+    env: any,
+    ctx: any
+  ): Promise<MinikinResponse> {
     const handlers = [...this.#prelims, ...this.#handlers];
     for (let i = 0; i < handlers.length; i++) {
       try {
         const handler = handlers[i];
-        const response = await handler.handle(req);
+        const response = await handler.handle(req, env, ctx);
         if (response) {
           return response;
         }
@@ -54,9 +59,14 @@ export default class Router {
     return new Handler(path, callbacks as RouteCallback[]);
   }
 
-  async #processAfters(response: MinikinResponse, request: MinikinRequest) {
+  async #processAfters(
+    response: MinikinResponse,
+    request: MinikinRequest,
+    env: any,
+    ctx: any
+  ) {
     await syncForEach(this.#afters, async (after: Afterware) => {
-      response = await after.execute(response, request);
+      response = await after.execute(response, request, env, ctx);
     });
     return response;
   }
@@ -93,8 +103,26 @@ export default class Router {
     return this;
   }
 
-  public async handle(request: MinikinRequest) {
-    const initialResponse = await this.#getResponse(request);
-    return this.#processAfters(initialResponse, request);
+  public handle(request: Request, env: any, ctx: any): Promise<MinikinResponse>;
+  public handle(request: MinikinRequest): Promise<MinikinResponse>;
+  public async handle(
+    request: Request | MinikinRequest,
+    env?: any,
+    ctx?: any
+  ): Promise<MinikinResponse> {
+    const parsedRequest = await (async () => {
+      if (request instanceof MinikinRequest) {
+        return request;
+      }
+      return new MinikinRequest({
+        url: request.url,
+        method: request.method,
+        headers: mapToObject(request.headers as unknown as Map<string, string>),
+        trailers: {},
+        body: await request.text(),
+      });
+    })();
+    const initialResponse = await this.#getResponse(parsedRequest, env, ctx);
+    return this.#processAfters(initialResponse, parsedRequest, env, ctx);
   }
 }

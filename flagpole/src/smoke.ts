@@ -1,14 +1,14 @@
 import flagpole from "flagpole";
-import Server, { Response } from "../../packages/server/dist/index.js";
+import Server, { file, json, text } from "../../packages/server/dist/index.js";
 
 (async () => {
   const server = await Server(8000);
 
   server.routes({
     "GET /string": () => "Hello",
-    "GET /file": () => Response.fromFile("./flagpole/fixtures/test.html"),
+    "GET /file": () => file("./flagpole/fixtures/test.html"),
     "GET /hello": () =>
-      Response.fromJson(
+      json(
         {
           message: "Hello from Minikin!",
         },
@@ -17,39 +17,36 @@ import Server, { Response } from "../../packages/server/dist/index.js";
         }
       ),
     "GET /hello/:name": (req) =>
-      Response.fromJson({
-        message: `Hello to ${req.params.name} from Minikin!`,
+      json({
+        message: `Hello to ${req.params.get("name")} from Minikin!`,
       }),
     "GET /trailers": () =>
-      Response.fromString("Hi", {
+      text("Hi", {
         trailers: { foo: "bar" },
       }),
-    "GET /cookie": (req) => Response.fromString(String(req.cookies.test)),
-    "GET /template": () =>
-      Response.fromString("Hello, {{ name }}").render({ name: "Jason" }),
-    "GET /template2": () =>
-      Response.fromString("1+1=${data.value + 1}").render({ value: 1 }),
+    "GET /cookie": (req) => text(String(req.cookies.get("test"))),
+    "GET /template": () => text("Hello, {{ name }}").render({ name: "Jason" }),
+    "GET /template2": () => text("1+1=${data.value + 1}").render({ value: 1 }),
     "GET /protected": [
       () => {},
       (req) => {
         if (!req.headers["Authorization"]) {
-          return Response.fromString("foo", { statusCode: 401 });
+          return text("foo", { statusCode: 401 });
         }
       },
-      () => Response.fromString("bar"),
+      () => text("bar"),
     ],
-    "POST /json": (req) => Response.fromString(req.json.message),
-    "GET /query": (req) =>
-      Response.fromJson({ message: req.query.get("message") }),
-    "PATCH|PUT *": () => Response.fromString("PATCH or PUT"),
+    "POST /json": (req) => text(String(req.json?.message)),
+    "GET /query": (req) => json({ message: req.query.get("message") }),
+    "PATCH|PUT *": () => text("PATCH or PUT"),
     "GET *": () =>
-      Response.fromJson(
+      json(
         {
           message: "File not found",
         },
         { statusCode: 404 }
       ),
-    "* *": () => Response.fromString("No match"),
+    "* *": () => text("No match"),
   });
 
   const suite = flagpole("Basic Smoke Test of Site").base(
