@@ -9,7 +9,7 @@ Yet another router? Why?! Well, the other ones are really big. They have depende
 
 # Getting Started
 
-In the 1.* versions of Minikin, it shipped with both the router and server together. With version 2.0 the base package of `minikin` only includes the router. Choose the appropriate option below for your needs.
+In the 1.\* versions of Minikin, it shipped with both the router and server together. With version 2.0 the base package of `minikin` only includes the router. Choose the appropriate option below for your needs.
 
 ## "Hello World" with Minikin Server
 
@@ -129,11 +129,14 @@ Use the second argument of `fromJson`, `fromString`, and similar `from*` methods
 
 ```javascript
 minikin.route("GET /error400", (req) =>
-  Response.fromJson({
-    error: `Don't call this endpoint!`,
-  }, {
-    statusCode: 400
-  })
+  Response.fromJson(
+    {
+      error: `Don't call this endpoint!`,
+    },
+    {
+      statusCode: 400,
+    }
+  )
 );
 ```
 
@@ -145,8 +148,8 @@ You can also use that second argument to set headers:
 minikin.route("GET /with-headers", (req) =>
   Response.fromString("This is the response body", {
     headers: {
-      "X-Custom-Header": "Some Value"
-    }
+      "X-Custom-Header": "Some Value",
+    },
   })
 );
 ```
@@ -162,7 +165,7 @@ minikin.route("GET /hello", () =>
 If you want to add trailers, they work the same way as headers except are called `trailer`
 
 ```javascript
-server.route("GET /hello", () =>
+minikin.route("GET /hello", () =>
   Response.fromString("Hi", {
     trailers: { "X-Some-Trailer": "foobar" },
   })
@@ -170,7 +173,7 @@ server.route("GET /hello", () =>
 
 Or...
 
-server.route("GET /bye", () =>
+minikin.route("GET /bye", () =>
   Response.fromString("See ya later").trailer("X-Foo", "Bar")
 );
 ```
@@ -180,7 +183,7 @@ server.route("GET /bye", () =>
 Similarly you can set cookies on the response
 
 ```javascript
-server.route("GET /hello", () =>
+minikin.route("GET /hello", () =>
   Response.fromString("Hey!").cookie("X-Foo", "Bar", 60)
 );
 ```
@@ -188,7 +191,7 @@ server.route("GET /hello", () =>
 The above sets the TTL (Max-Age) on the cookie to 60 seconds. Alternately, the third argument can accept an object allowing you to set any of the standard cookie options.
 
 ```javascript
-server.route("GET /hello", () =>
+minikin.route("GET /hello", () =>
   Response.fromString("Hey!").cookie("X-Foo", "Bar", {
     "Max-Age": 60,
     SameSite: true,
