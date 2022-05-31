@@ -1,6 +1,6 @@
 {
   "name": "minikin-edge",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Lightweight edge router, written in TypeScript with no dependencies and no extras",
   "keywords": [
     "http",
