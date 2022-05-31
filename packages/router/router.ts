@@ -1,39 +1,40 @@
 import MinikinRequest from "./request";
 import MinikinResponse from "./response";
-import { RouteCallback, AfterCallback, Routes } from "./interfaces";
+import { RouteCallback, AfterCallback, Routes, RouterInit } from "./interfaces";
 import { syncForEach } from "./sync-foreach";
 import Handler from "./handler";
 import Afterware from "./afterware";
 
 export default class Router {
+  public readonly passThroughOnException: boolean;
+  public readonly base: string;
+
   #prelims: Handler[] = [];
   #handlers: Handler[] = [];
   #afters: Afterware[] = [];
 
-  public constructor(routes?: Routes) {
-    if (routes) this.routes(routes);
+  public constructor(opts?: RouterInit) {
+    if (opts?.routes) this.routes(opts?.routes);
+    this.passThroughOnException = !!opts?.passThroughOnException;
+    this.base = opts?.base || "";
   }
 
-  async #getResponse(
-    req: MinikinRequest,
-    env: any,
-    ctx: any
-  ): Promise<MinikinResponse> {
+  async #processRequest(req: MinikinRequest, env: any, ctx: any) {
     const handlers = [...this.#prelims, ...this.#handlers];
     for (let i = 0; i < handlers.length; i++) {
       try {
         const handler = handlers[i];
-        const response = await handler.handle(req, env, ctx);
-        if (response) {
-          return response;
-        }
+        const response = await handler.execute(req, env, ctx);
+        if (response) return response;
       } catch (ex) {
-        return new MinikinResponse(`Unhandled exception: ${ex}`, {
-          statusCode: 500,
-        });
+        if (!this.passThroughOnException) {
+          return new MinikinResponse(`Unhandled exception: ${ex}`, {
+            statusCode: 500,
+          });
+        }
       }
     }
-    return new MinikinResponse("Not Found", { statusCode: 404 });
+    return null;
   }
 
   #overloaded(a: string | Function, b: Function[]) {
@@ -45,7 +46,7 @@ export default class Router {
             b.unshift(a);
             return b;
           })();
-    return { path: path, callbacks: callbacks };
+    return { path: `${this.base}${path}`, callbacks: callbacks };
   }
 
   #getAfterware(a: string | AfterCallback, b: AfterCallback[]): Afterware {
@@ -59,7 +60,7 @@ export default class Router {
   }
 
   async #processAfters(
-    response: MinikinResponse,
+    response: MinikinResponse | null,
     request: MinikinRequest,
     env: any,
     ctx: any
@@ -78,12 +79,11 @@ export default class Router {
     return this;
   }
 
-  public route(...callbacks: RouteCallback[]): Handler;
-  public route(path: string, ...callbacks: RouteCallback[]): Handler;
-  public route(a: string | RouteCallback, ...b: RouteCallback[]): Handler {
-    const handler = this.#getHandler(a, b);
-    this.#handlers.push(handler);
-    return handler;
+  public route(...callbacks: RouteCallback[]): Router;
+  public route(path: string, ...callbacks: RouteCallback[]): Router;
+  public route(a: string | RouteCallback, ...b: RouteCallback[]) {
+    this.#handlers.push(this.#getHandler(a, b));
+    return this;
   }
 
   public routes(routes: Routes) {
@@ -106,8 +106,12 @@ export default class Router {
     request: MinikinRequest,
     env?: any,
     ctx?: any
-  ): Promise<MinikinResponse> {
-    const initialResponse = await this.#getResponse(request, env, ctx);
-    return this.#processAfters(initialResponse, request, env, ctx);
+  ): Promise<MinikinResponse | void> {
+    const response = await this.#processRequest(request, env, ctx);
+    const postResponse = await this.#processAfters(response, request, env, ctx);
+    if (postResponse) return postResponse;
+    if (!this.passThroughOnException) {
+      return new MinikinResponse("Not Found", { statusCode: 404 });
+    }
   }
 }

@@ -1,15 +1,15 @@
 import Request from "./request";
 
 export default class Route {
-  public method: string = "GET";
-  public uri: string = "/";
+  public readonly method: string;
+  public readonly url: string;
 
   get #regexPath(): RegExp {
-    return this.uri === "*"
+    return this.url === "*"
       ? new RegExp(".*")
       : new RegExp(
           "^" +
-            this.uri
+            this.url
               .replace(/\/:[A-Za-z]+/g, "/([^/]+)")
               .replace(/\/\*/, "/.*") +
             "$"
@@ -17,16 +17,12 @@ export default class Route {
   }
 
   constructor(path: string) {
-    this.#parsePath(path);
-  }
-
-  #parsePath(path: string) {
     const arrPath = (() => {
       const arr = (path.trim() || "*").replace(/  +/g, " ").split(" ");
       return arr.length > 1 ? arr : ["*", arr[0]];
     })();
-    this.method = arrPath[0].toUpperCase();
-    this.uri = arrPath[arrPath.length > 1 ? 1 : 0];
+    this.method = arrPath[0].toUpperCase() || "GET";
+    this.url = arrPath[arrPath.length > 1 ? 1 : 0] || "/";
   }
 
   #pathMatches(req: Request) {
@@ -42,8 +38,6 @@ export default class Route {
   }
 
   public matches(req: Request): RegExpMatchArray | false {
-    const pathMatches = this.#pathMatches(req);
-    const methodMathces = this.#methodMatches(req);
-    return (methodMathces && pathMatches) || false;
+    return (this.#methodMatches(req) && this.#pathMatches(req)) || false;
   }
 }

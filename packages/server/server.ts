@@ -40,13 +40,17 @@ export default class Server extends Router {
     ) => {
       const request = await parseRequest(req);
       const response = await this.handle(request);
+      if (!response) {
+        res.end();
+        return;
+      }
       res
         .writeHead(
           response.status,
           response.statusText,
           mapToObject(response.headers)
         )
-        .write(response.content, () => {
+        .write(response.content(), () => {
           res.addTrailers(mapToObject(response.trailers));
           res.end();
         });
@@ -64,7 +68,6 @@ export default class Server extends Router {
       this.#server
         .listen({ port: port }, () => {
           this.#port = port;
-          console.log(`Minikin is now listening for requests on port ${port}`);
           resolve(this);
         })
         .on("error", (err: string) => {

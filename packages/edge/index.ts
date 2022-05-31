@@ -16,16 +16,20 @@ export default class EdgeRouter {
   public use = this.router.use;
   public after = this.router.after;
 
-  public async handle(req: Request, env: any, ctx: any): Promise<Response> {
+  public async handle(
+    req: Request,
+    env: any,
+    ctx: any
+  ): Promise<Response | void> {
     const request = new MinikinRequest({
       url: req.url,
       method: req.method,
       headers: mapToObject(req.headers as unknown as Map<string, string>),
-      trailers: {},
       body: await req.text(),
     });
     const response = await this.router.handle(request, env, ctx);
-    return new Response(response.content, {
+    if (!response) return;
+    return new Response(response.content(), {
       headers: mapToObject(response.headers),
       status: response.status,
       statusText: response.statusText,

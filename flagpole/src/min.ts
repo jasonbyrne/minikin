@@ -5,20 +5,19 @@ import Server, { json, text } from "../../packages/server/dist/index.js";
   const server = await Server(8000);
 
   server.after(async (res) => {
-    res.header("X-Flagpole", "1");
+    res?.header("X-Flagpole", "1");
   });
 
   server
     .route("GET /hello", () => text("test"))
-    .after(async (res) => {
-      res.content = "foo";
-      res.header("foo", "bar");
+    .after("GET /hello", async (res) => {
+      return res?.content("foo").header("foo", "bar");
     });
   server.route("GET /json", () => json({ message: "test" }));
 
   server
     .route("GET /replace", () => text("one thing"))
-    .after(() => {
+    .after("GET /replace", () => {
       return text("another");
     });
 

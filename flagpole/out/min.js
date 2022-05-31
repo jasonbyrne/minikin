@@ -14,18 +14,17 @@ const index_js_1 = require("../../packages/server/dist/index.js");
 (() => __awaiter(void 0, void 0, void 0, function* () {
     const server = yield (0, index_js_1.default)(8000);
     server.after((res) => __awaiter(void 0, void 0, void 0, function* () {
-        res.header("X-Flagpole", "1");
+        res === null || res === void 0 ? void 0 : res.header("X-Flagpole", "1");
     }));
     server
         .route("GET /hello", () => (0, index_js_1.text)("test"))
-        .after((res) => __awaiter(void 0, void 0, void 0, function* () {
-        res.content = "foo";
-        res.header("foo", "bar");
+        .after("GET /hello", (res) => __awaiter(void 0, void 0, void 0, function* () {
+        return res === null || res === void 0 ? void 0 : res.content("foo").header("foo", "bar");
     }));
     server.route("GET /json", () => (0, index_js_1.json)({ message: "test" }));
     server
         .route("GET /replace", () => (0, index_js_1.text)("one thing"))
-        .after(() => {
+        .after("GET /replace", () => {
         return (0, index_js_1.text)("another");
     });
     const suite = (0, flagpole_1.default)("Minimal repro").base("http://localhost:8000");

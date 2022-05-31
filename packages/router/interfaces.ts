@@ -59,7 +59,7 @@ export type RouteCallback = (
 ) => MinikinResponse | string | void | Promise<MinikinResponse | string | void>;
 
 export type AfterCallback = (
-  response: MinikinResponse,
+  response: MinikinResponse | null,
   request: MinikinRequest,
   env?: any,
   ctx?: any
@@ -76,3 +76,11 @@ export type JsonValue =
   | Array<JsonValue>;
   */
 export type JsonValue = any;
+
+export type RouterInit = {
+  routes?: Routes;
+  base?: string;
+  passThroughOnException?: boolean;
+};
+
+export type ResponseContent = string | Buffer;

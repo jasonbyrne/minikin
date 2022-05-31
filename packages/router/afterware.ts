@@ -5,21 +5,20 @@ import { AfterCallback } from "./interfaces";
 import { syncForEach } from "./sync-foreach";
 
 export default class Afterware extends Route {
-  constructor(path: string, private _callbacks: AfterCallback[]) {
+  constructor(path: string, private callbacks: AfterCallback[]) {
     super(path);
   }
 
   public async execute(
-    response: Response,
-    request: Request,
+    res: Response | null,
+    req: Request,
     env?: any,
     ctx?: any
   ) {
-    if (this.matches(request)) {
-      await syncForEach(this._callbacks, async (after: AfterCallback) => {
-        response = (await after(response, request, env, ctx)) || response;
-      });
-    }
-    return response;
+    if (!this.matches(req)) return res;
+    await syncForEach(this.callbacks, async (after: AfterCallback) => {
+      res = (await after(res, req, env, ctx)) || res;
+    });
+    return res;
   }
 }

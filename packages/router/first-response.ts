@@ -16,5 +16,5 @@ export async function firstResponse(
       res = typeof result == "string" ? text(result) : result || null;
     }
   }
-  return res === null ? text("No response", { statusCode: 500 }) : res;
+  return res;
 }
