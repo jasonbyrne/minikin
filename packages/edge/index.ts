@@ -5,6 +5,8 @@ import {
   RouterInit,
 } from "minikin-router";
 
+export * from "minikin-router";
+
 /**
  * 
 export default {
