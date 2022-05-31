@@ -34,7 +34,7 @@ const index_js_1 = require("../../packages/server/dist/index.js");
             () => { },
             (req) => {
                 if (!req.headers["Authorization"]) {
-                    return (0, index_js_1.text)("foo", { statusCode: 401 });
+                    return (0, index_js_1.text)("foo", { status: 401 });
                 }
             },
             () => (0, index_js_1.text)("bar"),
@@ -44,7 +44,7 @@ const index_js_1 = require("../../packages/server/dist/index.js");
         "PATCH|PUT *": () => (0, index_js_1.text)("PATCH or PUT"),
         "GET *": () => (0, index_js_1.json)({
             message: "File not found",
-        }, { statusCode: 404 }),
+        }, { status: 404 }),
         "* *": () => (0, index_js_1.text)("No match"),
     });
     const suite = (0, flagpole_1.default)("Basic Smoke Test of Site").base("http://localhost:8000");

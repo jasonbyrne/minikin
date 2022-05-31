@@ -1,6 +1,7 @@
 import * as http from "http";
 import * as https from "https";
-import { Router, mapToObject } from "minikin-router";
+import { Router, mapToObject, RouterInit } from "minikin-router";
+import { ServerInit } from "./interfaces";
 import parseRequest from "./parse-request";
 import Port from "./port";
 
@@ -10,12 +11,12 @@ export default class Server extends Router {
 
   public static async listen(
     portNumber?: number,
-    opts?: https.ServerOptions
+    opts?: ServerInit
   ): Promise<Server>;
   public static async listen(opts: https.ServerOptions): Promise<Server>;
   public static async listen(
-    a?: number | https.ServerOptions,
-    b?: https.ServerOptions
+    a?: number | (https.ServerOptions & RouterInit),
+    b?: https.ServerOptions & RouterInit
   ) {
     let port = typeof a == "number" ? a : null;
     const opts = typeof a == "number" ? b : a;
@@ -32,8 +33,8 @@ export default class Server extends Router {
     return this.#port || 0;
   }
 
-  private constructor(secureOpts?: https.ServerOptions) {
-    super();
+  private constructor(opts?: ServerInit) {
+    super(opts);
     const listener = async (
       req: http.IncomingMessage,
       res: http.ServerResponse
@@ -55,8 +56,8 @@ export default class Server extends Router {
           res.end();
         });
     };
-    this.#server = secureOpts
-      ? https.createServer(secureOpts, listener)
+    this.#server = opts
+      ? https.createServer(opts, listener)
       : http.createServer(listener);
   }
 

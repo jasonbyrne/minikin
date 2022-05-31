@@ -31,7 +31,7 @@ import Server, { file, json, text } from "../../packages/server/dist/index.js";
       () => {},
       (req) => {
         if (!req.headers["Authorization"]) {
-          return text("foo", { statusCode: 401 });
+          return text("foo", { status: 401 });
         }
       },
       () => text("bar"),
@@ -44,7 +44,7 @@ import Server, { file, json, text } from "../../packages/server/dist/index.js";
         {
           message: "File not found",
         },
-        { statusCode: 404 }
+        { status: 404 }
       ),
     "* *": () => text("No match"),
   });

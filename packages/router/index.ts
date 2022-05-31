@@ -6,6 +6,8 @@ import Route from "./route";
 import Afterware from "./afterware";
 import { json } from "./from-json";
 import { text } from "./from-text";
+import { redirect } from "./redirect";
+import { RouterInit } from "./interfaces";
 
 export {
   Router,
@@ -16,10 +18,11 @@ export {
   Afterware,
   json,
   text,
+  redirect,
 };
 export * from "./interfaces";
 export * from "./object-to-map";
 export * from "./map-to-object";
 
-const router = () => new Router();
+const router = (opts?: RouterInit) => new Router(opts);
 export default router;
