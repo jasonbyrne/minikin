@@ -9,9 +9,9 @@ export default class Router {
   public readonly passThroughOnException: boolean;
   public readonly base: string;
 
-  #prelims: Handler[] = [];
-  #handlers: Handler[] = [];
-  #afters: Afterware[] = [];
+  private _prelims: Handler[] = [];
+  private _handlers: Handler[] = [];
+  private _afters: Afterware[] = [];
 
   public constructor(opts?: RouterInit) {
     if (opts?.routes) this.routes(opts?.routes);
@@ -19,8 +19,8 @@ export default class Router {
     this.base = opts?.base || "";
   }
 
-  async #processRequest(req: MinikinRequest, env: any, ctx: any) {
-    const handlers = [...this.#prelims, ...this.#handlers];
+  private async _processRequest(req: MinikinRequest, env: any, ctx: any) {
+    const handlers = [...this._prelims, ...this._handlers];
     for (let i = 0; i < handlers.length; i++) {
       try {
         const handler = handlers[i];
@@ -37,7 +37,7 @@ export default class Router {
     return null;
   }
 
-  #overloaded(a: string | Function, b: Function[]) {
+  private _overloaded(a: string | Function, b: Function[]) {
     const path = typeof a == "string" ? a : "*";
     const callbacks =
       typeof a == "string"
@@ -49,23 +49,26 @@ export default class Router {
     return { path: `${this.base}${path}`, callbacks: callbacks };
   }
 
-  #getAfterware(a: string | AfterCallback, b: AfterCallback[]): Afterware {
-    const { path, callbacks } = this.#overloaded(a, b);
+  private _getAfterware(
+    a: string | AfterCallback,
+    b: AfterCallback[]
+  ): Afterware {
+    const { path, callbacks } = this._overloaded(a, b);
     return new Afterware(path, callbacks as AfterCallback[]);
   }
 
-  #getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
-    const { path, callbacks } = this.#overloaded(a, b);
+  private _getHandler(a: string | RouteCallback, b: RouteCallback[]): Handler {
+    const { path, callbacks } = this._overloaded(a, b);
     return new Handler(path, callbacks as RouteCallback[]);
   }
 
-  async #processAfters(
+  private async _processAfters(
     response: MinikinResponse | null,
     request: MinikinRequest,
     env: any,
     ctx: any
   ) {
-    await syncForEach(this.#afters, async (after: Afterware) => {
+    await syncForEach(this._afters, async (after: Afterware) => {
       response = await after.execute(response, request, env, ctx);
     });
     return response;
@@ -75,14 +78,14 @@ export default class Router {
   public use(path: string, ...callbacks: RouteCallback[]): Router;
   public use(...callbacks: RouteCallback[]): Router;
   public use(a: string | RouteCallback, ...b: RouteCallback[]) {
-    this.#prelims.push(this.#getHandler(a, b));
+    this._prelims.push(this._getHandler(a, b));
     return this;
   }
 
   public route(...callbacks: RouteCallback[]): Router;
   public route(path: string, ...callbacks: RouteCallback[]): Router;
   public route(a: string | RouteCallback, ...b: RouteCallback[]) {
-    this.#handlers.push(this.#getHandler(a, b));
+    this._handlers.push(this._getHandler(a, b));
     return this;
   }
 
@@ -98,7 +101,7 @@ export default class Router {
   public after(path: string, ...callbacks: AfterCallback[]): Router;
   public after(...callbacks: AfterCallback[]): Router;
   public after(a: string | AfterCallback, ...b: AfterCallback[]) {
-    this.#afters.push(this.#getAfterware(a, b));
+    this._afters.push(this._getAfterware(a, b));
     return this;
   }
 
@@ -107,8 +110,8 @@ export default class Router {
     env?: any,
     ctx?: any
   ): Promise<MinikinResponse | void> {
-    const response = await this.#processRequest(request, env, ctx);
-    const postResponse = await this.#processAfters(response, request, env, ctx);
+    const response = await this._processRequest(request, env, ctx);
+    const postResponse = await this._processAfters(response, request, env, ctx);
     if (postResponse) return postResponse;
     if (!this.passThroughOnException) {
       return new MinikinResponse("Not Found", { status: 404 });

@@ -5,7 +5,7 @@ import { AfterCallback } from "./interfaces";
 import { syncForEach } from "./sync-foreach";
 
 export default class Afterware extends Route {
-  constructor(path: string, private callbacks: AfterCallback[]) {
+  constructor(path: string, private _callbacks: AfterCallback[]) {
     super(path);
   }
 
@@ -16,7 +16,7 @@ export default class Afterware extends Route {
     ctx?: any
   ) {
     if (!this.matches(req)) return res;
-    await syncForEach(this.callbacks, async (after: AfterCallback) => {
+    await syncForEach(this._callbacks, async (after: AfterCallback) => {
       res = (await after(res, req, env, ctx)) || res;
     });
     return res;

@@ -6,8 +6,8 @@ import parseRequest from "./parse-request";
 import Port from "./port";
 
 export default class Server extends Router {
-  #server: http.Server | https.Server;
-  #port: number | null = null;
+  private _server: http.Server | https.Server;
+  private _port: number | null = null;
 
   public static async listen(
     portNumber?: number,
@@ -26,11 +26,11 @@ export default class Server extends Router {
     } else {
       await Port.check(port);
     }
-    return new Server(opts).#listen(port);
+    return new Server(opts)._listen(port);
   }
 
   public get port(): number {
-    return this.#port || 0;
+    return this._port || 0;
   }
 
   private constructor(opts?: ServerInit) {
@@ -56,19 +56,19 @@ export default class Server extends Router {
           res.end();
         });
     };
-    this.#server = opts
+    this._server = opts
       ? https.createServer(opts, listener)
       : http.createServer(listener);
   }
 
-  #listen(port: number): Promise<Server> {
-    if (this.#server.listening) {
+  private _listen(port: number): Promise<Server> {
+    if (this._server.listening) {
       throw new Error("HTTP Server is already listening.");
     }
     return new Promise((resolve, reject) => {
-      this.#server
+      this._server
         .listen({ port: port }, () => {
-          this.#port = port;
+          this._port = port;
           resolve(this);
         })
         .on("error", (err: string) => {
@@ -81,8 +81,8 @@ export default class Server extends Router {
 
   public close(): Promise<Server> {
     return new Promise((resolve, reject) => {
-      this.#server.listening
-        ? this.#server.close((err) => (err ? reject(err) : resolve(this)))
+      this._server.listening
+        ? this._server.close((err) => (err ? reject(err) : resolve(this)))
         : resolve(this);
     });
   }

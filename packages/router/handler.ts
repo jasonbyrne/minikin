@@ -4,11 +4,11 @@ import { RouteCallback } from "./interfaces";
 import { firstResponse } from "./first-response";
 
 export default class Handler extends Route {
-  constructor(path: string, private callbacks: RouteCallback[]) {
+  constructor(path: string, private _callbacks: RouteCallback[]) {
     super(path);
   }
 
-  #parseParams(pathMatches: RegExpMatchArray, req: Request) {
+  private _parseParams(pathMatches: RegExpMatchArray, req: Request) {
     const params = this.url.match(/\/:([a-z]+)/gi)?.map((key) => {
       return key.substring(2);
     });
@@ -22,7 +22,7 @@ export default class Handler extends Route {
   public async execute(req: Request, env?: any, ctx?: any) {
     const matches = this.matches(req);
     if (!matches) return null;
-    this.#parseParams(matches, req);
-    return firstResponse(req, this.callbacks, env, ctx);
+    this._parseParams(matches, req);
+    return firstResponse(req, this._callbacks, env, ctx);
   }
 }

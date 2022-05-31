@@ -11,33 +11,30 @@ import { objectToMap } from "./object-to-map";
 export default class MinikinResponse {
   public headers: Map<string, string>;
   public trailers: Map<string, string>;
+  public readonly status: number;
+  public readonly statusText: string;
 
-  #content: ResponseContent;
-
-  public get status() {
-    return this.opts.status || 200;
-  }
-
-  public get statusText() {
-    return this.opts.statusText || defaultStatusMessage[this.status] || "";
-  }
-
-  public constructor(content: ResponseContent, private opts: ResponseParams) {
-    this.#content = content;
-    this.headers = objectToMap(this.opts.headers);
-    this.trailers = objectToMap(this.opts.trailers);
+  public constructor(
+    private _content: ResponseContent,
+    private _opts: ResponseParams
+  ) {
+    this.headers = objectToMap(this._opts.headers);
+    this.trailers = objectToMap(this._opts.trailers);
+    this.status = this._opts.status || 200;
+    this.statusText =
+      this._opts.statusText || defaultStatusMessage[this.status] || "";
   }
 
   public content(): ResponseContent;
   public content(value: ResponseContent): MinikinResponse;
   public content(value?: ResponseContent) {
     if (value !== undefined) return this.clone(value);
-    return this.#content;
+    return this._content;
   }
 
   public clone(newContent?: ResponseContent) {
     return new MinikinResponse(newContent || this.content(), {
-      ...this.opts,
+      ...this._opts,
       headers: mapToObject(this.headers),
       trailers: mapToObject(this.trailers),
     });

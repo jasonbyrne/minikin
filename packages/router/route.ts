@@ -4,7 +4,7 @@ export default class Route {
   public readonly method: string;
   public readonly url: string;
 
-  get #regexPath(): RegExp {
+  private get _regexPath(): RegExp {
     return this.url === "*"
       ? new RegExp(".*")
       : new RegExp(
@@ -25,19 +25,19 @@ export default class Route {
     this.url = arrPath[arrPath.length > 1 ? 1 : 0] || "/";
   }
 
-  #pathMatches(req: Request) {
+  private _pathMatches(req: Request) {
     const url = req.url.includes("?")
       ? req.url.substring(0, req.url.indexOf("?"))
       : req.url;
-    return url.match(this.#regexPath);
+    return url.match(this._regexPath);
   }
 
-  #methodMatches(req: Request) {
+  private _methodMatches(req: Request) {
     const methods = this.method.split("|");
     return methods.includes(req.method) || methods.includes("*");
   }
 
   public matches(req: Request): RegExpMatchArray | false {
-    return (this.#methodMatches(req) && this.#pathMatches(req)) || false;
+    return (this._methodMatches(req) && this._pathMatches(req)) || false;
   }
 }
