@@ -8,9 +8,11 @@ import { json } from "./from-json";
 import { text } from "./from-text";
 import { redirect } from "./redirect";
 import { RouterInit } from "./interfaces";
+import { ProtoRouter } from "./proto-router";
 
 export {
   Router,
+  ProtoRouter,
   MinikinRequest,
   MinikinResponse,
   Route,

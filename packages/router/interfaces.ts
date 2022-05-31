@@ -90,3 +90,16 @@ export type RouterInit = {
 };
 
 export type ResponseContent = string | Buffer;
+
+export interface RouterInterface {
+  readonly passThroughOnException: boolean;
+  readonly base: string;
+  use(path: string, ...callbacks: RouteCallback[]): RouterInterface;
+  use(...callbacks: RouteCallback[]): RouterInterface;
+  route(...callbacks: RouteCallback[]): RouterInterface;
+  route(path: string, ...callbacks: RouteCallback[]): RouterInterface;
+  routes(routes: Routes): RouterInterface;
+  after(path: string, ...callbacks: AfterCallback[]): RouterInterface;
+  after(...callbacks: AfterCallback[]): RouterInterface;
+  handle(request: any, env?: any, ctx?: any): Promise<MinikinResponse | void>;
+}
