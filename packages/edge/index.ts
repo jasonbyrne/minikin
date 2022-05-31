@@ -1,4 +1,9 @@
-import { Router, mapToObject, MinikinRequest } from "minikin-router";
+import {
+  Router,
+  mapToObject,
+  MinikinRequest,
+  RouterInit,
+} from "minikin-router";
 
 /**
  * 
@@ -7,32 +12,37 @@ export default {
 };
  */
 
-export default class EdgeRouter {
-  private router = new Router();
+export const EdgeRouter = (opts?: RouterInit) => {
+  const router = new Router(opts);
 
-  public route = this.router.route;
-  public routes = this.router.routes;
-  public before = this.router.before;
-  public use = this.router.use;
-  public after = this.router.after;
+  return class EdgeRouter {
+    public route = router.route;
+    public routes = router.routes;
+    public before = router.before;
+    public use = router.use;
+    public after = router.after;
 
-  public async handle(
-    req: Request,
-    env: any,
-    ctx: any
-  ): Promise<Response | void> {
-    const request = new MinikinRequest({
-      url: req.url,
-      method: req.method,
-      headers: mapToObject(req.headers as unknown as Map<string, string>),
-      body: await req.text(),
-    });
-    const response = await this.router.handle(request, env, ctx);
-    if (!response) return;
-    return new Response(response.content(), {
-      headers: mapToObject(response.headers),
-      status: response.status,
-      statusText: response.statusText,
-    });
-  }
-}
+    public async handle(
+      req: Request,
+      env: any,
+      ctx: any
+    ): Promise<Response | void> {
+      const request = new MinikinRequest({
+        url: req.url,
+        method: req.method,
+        headers: mapToObject(req.headers as unknown as Map<string, string>),
+        body: await req.text(),
+      });
+      const response = await router.handle(request, env, ctx);
+      if (!response) return;
+      return new Response(response.content(), {
+        headers: mapToObject(response.headers),
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
+  };
+};
+
+const edgeRouter = (opts?: RouterInit) => new (EdgeRouter(opts))();
+export default edgeRouter;

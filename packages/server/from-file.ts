@@ -32,7 +32,7 @@ export const file = (
         message: `${filePath} was not found`,
       },
       {
-        statusCode: 404,
+        status: 404,
       }
     );
   }

@@ -4,6 +4,7 @@ import {
   ResponseParams,
   CookieParams,
   ResponseContent,
+  defaultStatusMessage,
 } from "./interfaces";
 import { objectToMap } from "./object-to-map";
 
@@ -14,11 +15,11 @@ export default class MinikinResponse {
   #content: ResponseContent;
 
   public get status() {
-    return this.opts.statusCode || 200;
+    return this.opts.status || 200;
   }
 
   public get statusText() {
-    return this.opts.statusMessage || "";
+    return this.opts.statusText || defaultStatusMessage[this.status] || "";
   }
 
   public constructor(content: ResponseContent, private opts: ResponseParams) {

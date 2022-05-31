@@ -29,7 +29,7 @@ export default class Router {
       } catch (ex) {
         if (!this.passThroughOnException) {
           return new MinikinResponse(`Unhandled exception: ${ex}`, {
-            statusCode: 500,
+            status: 500,
           });
         }
       }
@@ -111,7 +111,7 @@ export default class Router {
     const postResponse = await this.#processAfters(response, request, env, ctx);
     if (postResponse) return postResponse;
     if (!this.passThroughOnException) {
-      return new MinikinResponse("Not Found", { statusCode: 404 });
+      return new MinikinResponse("Not Found", { status: 404 });
     }
   }
 }

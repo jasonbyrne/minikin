@@ -10,15 +10,21 @@ export const defaultStatusMessage = {
   302: "Permanent Redirect",
   400: "Bad Request",
   401: "Not Authenticated",
+  402: "Payment Required",
   403: "Permission Denied",
   404: "Not Found",
+  409: "Conflict",
+  410: "Gone",
   500: "Unknown Error",
+  501: "Not Implemented",
+  502: "Bad Gateway",
+  503: "Service Unavailable",
   504: "Gateway Timeout",
 };
 
 export interface ResponseParams {
-  statusCode?: number;
-  statusMessage?: string;
+  status?: number;
+  statusText?: string;
   headers?: KeyValue;
   trailers?: KeyValue;
 }
