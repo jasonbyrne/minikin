@@ -1,5 +1,5 @@
-import { defaultStatusMessage } from "./interfaces";
-import MinikinResponse from "./response";
+import { defaultStatusMessage } from "../interfaces";
+import MinikinResponse from "../response";
 
 export const redirect = (url: string, code: number = 302) => {
   return new MinikinResponse("", {

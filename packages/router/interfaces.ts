@@ -1,3 +1,5 @@
+import Afterware from "./afterware";
+import Handler from "./handler";
 import MinikinRequest from "./request";
 import MinikinResponse from "./response";
 
@@ -101,5 +103,10 @@ export interface RouterInterface {
   routes(routes: Routes): RouterInterface;
   after(path: string, ...callbacks: AfterCallback[]): RouterInterface;
   after(...callbacks: AfterCallback[]): RouterInterface;
-  handle(request: any, env?: any, ctx?: any): Promise<MinikinResponse | void>;
+  handle(request: any, env?: any, ctx?: any): Promise<any | void>;
+  callbacks: {
+    readonly befores: Handler[];
+    readonly handlers: Handler[];
+    readonly afters: Afterware[];
+  };
 }

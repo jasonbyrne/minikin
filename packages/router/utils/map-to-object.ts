@@ -1,4 +1,4 @@
-import { KeyValue } from "./interfaces";
+import { KeyValue } from "../interfaces";
 
 export const mapToObject = (headers: Map<string, string>): KeyValue => {
   const obj: KeyValue = {};

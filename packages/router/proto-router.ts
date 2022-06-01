@@ -7,17 +7,90 @@ import {
   RouterInit,
   RouterInterface,
 } from "./interfaces";
-import { syncForEach } from "./sync-foreach";
+import { syncForEach } from "./utils/sync-foreach";
 import Handler from "./handler";
 import Afterware from "./afterware";
+
+export const processAfters = async (
+  router: RouterInterface,
+  response: MinikinResponse | null,
+  request: MinikinRequest,
+  env?: any,
+  ctx?: any
+) => {
+  await syncForEach(router.callbacks.afters, async (after: Afterware) => {
+    response = await after.execute(response, request, env, ctx);
+  });
+  return response;
+};
+
+export const processRequest = async (
+  router: RouterInterface,
+  req: MinikinRequest,
+  env?: any,
+  ctx?: any
+) => {
+  const handlers = [...router.callbacks.befores, ...router.callbacks.handlers];
+  for (let i = 0; i < handlers.length; i++) {
+    try {
+      const handler = handlers[i];
+      const response = await handler.execute(req, env, ctx);
+      if (response) return response;
+    } catch (ex) {
+      if (!router.passThroughOnException) {
+        return new MinikinResponse(`Unhandled exception: ${ex}`, {
+          status: 500,
+        });
+      }
+    }
+  }
+  return null;
+};
+
+const overloading = (
+  router: RouterInterface,
+  a: string | Function,
+  b: Function[]
+) => {
+  const path = typeof a == "string" ? a : "*";
+  const callbacks =
+    typeof a == "string"
+      ? b
+      : (() => {
+          b.unshift(a);
+          return b;
+        })();
+  return { path: `${router.base}${path}`, callbacks: callbacks };
+};
+
+const getAfterware = (
+  router: RouterInterface,
+  a: string | AfterCallback,
+  b: AfterCallback[]
+): Afterware => {
+  const { path, callbacks } = overloading(router, a, b);
+  return new Afterware(path, callbacks as AfterCallback[]);
+};
+
+const getHandler = (
+  router: RouterInterface,
+  a: string | RouteCallback,
+  b: RouteCallback[]
+): Handler => {
+  const { path, callbacks } = overloading(router, a, b);
+  return new Handler(path, callbacks as RouteCallback[]);
+};
+
+class RouterCallbacks {
+  public readonly befores: Handler[] = [];
+  public readonly handlers: Handler[] = [];
+  public readonly afters: Afterware[] = [];
+}
 
 export abstract class ProtoRouter implements RouterInterface {
   public readonly passThroughOnException: boolean;
   public readonly base: string;
-
-  protected _prelims: Handler[] = [];
-  protected _handlers: Handler[] = [];
-  protected _afters: Afterware[] = [];
+  public readonly callbacks = new RouterCallbacks();
 
   public constructor(opts?: RouterInit) {
     if (opts?.routes) this.routes(opts?.routes);
@@ -25,76 +98,17 @@ export abstract class ProtoRouter implements RouterInterface {
     this.base = opts?.base || "";
   }
 
-  protected async _processRequest(req: MinikinRequest, env: any, ctx: any) {
-    const handlers = [...this._prelims, ...this._handlers];
-    for (let i = 0; i < handlers.length; i++) {
-      try {
-        const handler = handlers[i];
-        const response = await handler.execute(req, env, ctx);
-        if (response) return response;
-      } catch (ex) {
-        if (!this.passThroughOnException) {
-          return new MinikinResponse(`Unhandled exception: ${ex}`, {
-            status: 500,
-          });
-        }
-      }
-    }
-    return null;
-  }
-
-  protected _overloaded(a: string | Function, b: Function[]) {
-    const path = typeof a == "string" ? a : "*";
-    const callbacks =
-      typeof a == "string"
-        ? b
-        : (() => {
-            b.unshift(a);
-            return b;
-          })();
-    return { path: `${this.base}${path}`, callbacks: callbacks };
-  }
-
-  protected _getAfterware(
-    a: string | AfterCallback,
-    b: AfterCallback[]
-  ): Afterware {
-    const { path, callbacks } = this._overloaded(a, b);
-    return new Afterware(path, callbacks as AfterCallback[]);
-  }
-
-  protected _getHandler(
-    a: string | RouteCallback,
-    b: RouteCallback[]
-  ): Handler {
-    const { path, callbacks } = this._overloaded(a, b);
-    return new Handler(path, callbacks as RouteCallback[]);
-  }
-
-  protected async _processAfters(
-    response: MinikinResponse | null,
-    request: MinikinRequest,
-    env: any,
-    ctx: any
-  ) {
-    await syncForEach(this._afters, async (after: Afterware) => {
-      response = await after.execute(response, request, env, ctx);
-    });
-    return response;
-  }
-
-  public before = this.use;
   public use(path: string, ...callbacks: RouteCallback[]): RouterInterface;
   public use(...callbacks: RouteCallback[]): RouterInterface;
   public use(a: string | RouteCallback, ...b: RouteCallback[]) {
-    this._prelims.push(this._getHandler(a, b));
+    this.callbacks.befores.push(getHandler(this, a, b));
     return this;
   }
 
   public route(...callbacks: RouteCallback[]): RouterInterface;
   public route(path: string, ...callbacks: RouteCallback[]): RouterInterface;
   public route(a: string | RouteCallback, ...b: RouteCallback[]) {
-    this._handlers.push(this._getHandler(a, b));
+    this.callbacks.handlers.push(getHandler(this, a, b));
     return this;
   }
 
@@ -110,7 +124,7 @@ export abstract class ProtoRouter implements RouterInterface {
   public after(path: string, ...callbacks: AfterCallback[]): RouterInterface;
   public after(...callbacks: AfterCallback[]): RouterInterface;
   public after(a: string | AfterCallback, ...b: AfterCallback[]) {
-    this._afters.push(this._getAfterware(a, b));
+    this.callbacks.afters.push(getAfterware(this, a, b));
     return this;
   }
 

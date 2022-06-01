@@ -1,4 +1,4 @@
-import { mapToObject } from "./map-to-object";
+import { mapToObject } from "./utils/map-to-object";
 import {
   TemplateKeyValues,
   ResponseParams,
@@ -6,7 +6,7 @@ import {
   ResponseContent,
   defaultStatusMessage,
 } from "./interfaces";
-import { objectToMap } from "./object-to-map";
+import { objectToMap } from "./utils/object-to-map";
 
 export default class MinikinResponse {
   public headers: Map<string, string>;

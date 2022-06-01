@@ -36,6 +36,7 @@
   ],
   "include": ["packages/**/*"],
   "references": [
+    { "path": "./packages/edge/" },
     { "path": "./packages/router/" },
     { "path": "./packages/server/" }
   ]

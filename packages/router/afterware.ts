@@ -2,7 +2,7 @@ import Route from "./route";
 import Request from "./request";
 import Response from "./response";
 import { AfterCallback } from "./interfaces";
-import { syncForEach } from "./sync-foreach";
+import { syncForEach } from "./utils/sync-foreach";
 
 export default class Afterware extends Route {
   constructor(path: string, private _callbacks: AfterCallback[]) {

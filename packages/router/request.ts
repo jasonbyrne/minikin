@@ -1,5 +1,5 @@
 import { JsonValue, RequestOpts } from "./interfaces";
-import { objectToMap } from "./object-to-map";
+import { objectToMap } from "./utils/object-to-map";
 
 const parseCookies = (headers: Map<string, string>) => {
   const cookies = new Map<string, string>();

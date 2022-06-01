@@ -1,7 +1,7 @@
 import Route from "./route";
 import Request from "./request";
 import { RouteCallback } from "./interfaces";
-import { firstResponse } from "./first-response";
+import { firstResponse } from "./utils/first-response";
 
 export default class Handler extends Route {
   constructor(path: string, private _callbacks: RouteCallback[]) {

@@ -1,6 +1,6 @@
-import Response from "./response";
-import Request from "./request";
-import { RouteCallback } from "./interfaces";
+import Response from "../response";
+import Request from "../request";
+import { RouteCallback } from "../interfaces";
 import { text } from "./from-text";
 
 export async function firstResponse(
