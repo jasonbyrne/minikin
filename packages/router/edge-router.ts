@@ -1,13 +1,9 @@
-import {
-  mapToObject,
-  MinikinRequest,
-  RouterInit,
-  ProtoRouter,
-  processRequest,
-  processAfters,
-} from "minikin-router";
+import { RouterInit } from "./interfaces";
+import { processAfters, processRequest, ProtoRouter } from "./proto-router";
+import MinikinRequest from "./request";
+import { mapToObject } from "./utils/map-to-object";
 
-export class EdgeRouter extends ProtoRouter {
+class EdgeRouter extends ProtoRouter {
   public async handle(
     req: Request,
     env: any,
@@ -29,4 +25,5 @@ export class EdgeRouter extends ProtoRouter {
     });
   }
 }
-export const createEdgeRouter = (opts?: RouterInit) => new EdgeRouter(opts);
+const createEdgeRouter = (opts?: RouterInit) => new EdgeRouter(opts);
+export default createEdgeRouter;
