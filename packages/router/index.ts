@@ -1,7 +1,6 @@
 import MinikinRequest from "./request";
 import MinikinResponse from "./response";
 import Router from "./router";
-import EdgeRouter from "./edge-router";
 import Handler from "./handler";
 import Route from "./route";
 import Afterware from "./afterware";
@@ -12,7 +11,6 @@ import { RouterInit } from "./interfaces";
 
 export {
   Router,
-  EdgeRouter,
   MinikinRequest,
   MinikinResponse,
   Route,
