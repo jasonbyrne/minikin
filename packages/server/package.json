@@ -1,6 +1,6 @@
 {
   "name": "minikin",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "Light weight Node server in TypeScript with no dependencies and no extras",
   "keywords": [
     "http",
@@ -39,6 +39,6 @@
     "typescript": "^4.7.2"
   },
   "dependencies": {
-    "minikin-router": "^2.1.4"
+    "minikin-router": "^2.1.5"
   }
 }
