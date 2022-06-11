@@ -115,8 +115,9 @@ export default class Router {
     env?: any,
     ctx?: any
   ): Promise<Response | MinikinResponse | void> {
-    if (req instanceof MinikinRequest) return this.handleHttp(req);
-    return this.handleEdge(req, env, ctx);
+    return req instanceof MinikinRequest
+      ? this.handleHttp(req)
+      : this.handleEdge(req, env, ctx);
   }
 
   private async handleHttp(
